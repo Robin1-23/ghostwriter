@@ -1,0 +1,74 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-0: #050508;
+  --bg-1: rgba(17, 17, 21, 0.6);
+  --bg-2: rgba(24, 24, 30, 0.4);
+  --bg-3: rgba(35, 35, 45, 0.5);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-mid: rgba(255, 255, 255, 0.12);
+  --text-1: #eceae4;
+  --text-2: #9a9890;
+  --text-3: rgba(255, 255, 255, 0.3);
+  --purple: #7F77DD;
+  --purple-light: #AFA9EC;
+  --purple-dark: #534AB7;
+  --purple-bg: rgba(127, 119, 221, 0.08);
+  --purple-border: rgba(127, 119, 221, 0.2);
+  --teal: #1D9E75;
+  --teal-light: #5DCAA5;
+  --teal-bg: rgba(29, 158, 117, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(15, 15, 20, 0.45);
+  --glass-bg-hover: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --glass-blur: blur(20px);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-0);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(83, 74, 183, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(175, 169, 236, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; outline: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+input, textarea { font-family: inherit; outline: none; transition: all 0.2s; }
+a { text-decoration: none; color: inherit; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+
+::selection { background: rgba(127, 119, 221, 0.35); }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+

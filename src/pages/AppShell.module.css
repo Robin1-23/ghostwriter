@@ -1,0 +1,317 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-0);
+  position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: rgba(15, 15, 20, 0.5);
+  border-right: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0 16px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: #eceae4;
+}
+.logoDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--purple);
+  box-shadow: 0 0 10px var(--purple);
+  flex-shrink: 0;
+}
+.navSection {
+  flex: 1;
+}
+.navLabel {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  padding: 0 20px 10px;
+  font-weight: 600;
+}
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 24px);
+  margin: 2px 12px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.45);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.navItem:hover {
+  color: #eceae4;
+  background: rgba(255, 255, 255, 0.03);
+}
+.navItem i {
+  font-size: 16px;
+}
+.navActive {
+  color: #fff !important;
+  background: rgba(127, 119, 221, 0.12) !important;
+  border: 1px solid rgba(127, 119, 221, 0.15);
+  box-shadow: 0 4px 15px rgba(127, 119, 221, 0.08);
+}
+.badge {
+  margin-left: auto;
+  background: rgba(127, 119, 221, 0.2);
+  border: 1px solid rgba(127, 119, 221, 0.15);
+  color: var(--purple-light);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+/* Platforms */
+.platformSection {
+  padding: 24px 0 0;
+  margin-bottom: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.platforms {
+  padding: 0 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.platformChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.platformChip:hover {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+}
+.platformChip i {
+  font-size: 13px;
+}
+.platformActive {
+  color: var(--purple-light) !important;
+  background: rgba(127, 119, 221, 0.1) !important;
+  border-color: rgba(127, 119, 221, 0.35) !important;
+  box-shadow: 0 4px 10px rgba(127, 119, 221, 0.05);
+}
+
+/* User row */
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 16px;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+.userName {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.userEmail {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.logoutBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 17px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logoutBtn:hover {
+  color: #eceae4;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Main content area */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  position: relative;
+}
+
+.topbar {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(10, 10, 12, 0.3);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.topTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #eceae4;
+}
+.topSub {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 3px;
+}
+
+.toneTabs {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 4px;
+  backdrop-filter: var(--glass-blur);
+}
+.toneTab {
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toneTab:hover {
+  color: #fff;
+}
+.toneTabActive {
+  background: rgba(127, 119, 221, 0.15) !important;
+  color: var(--purple-light) !important;
+  box-shadow: 0 2px 8px rgba(127, 119, 221, 0.1);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+.content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .shell {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 16px 0 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .logo {
+    padding: 0 16px 16px;
+  }
+  .navSection {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .navLabel {
+    display: none;
+  }
+  .navItem {
+    width: auto;
+    margin: 0 4px;
+    white-space: nowrap;
+    padding: 8px 14px;
+  }
+  .platformSection {
+    display: none;
+  }
+  .userRow {
+    border-top: none;
+    margin-top: 0;
+    padding: 0 16px;
+  }
+  .topbar {
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .toneTabs {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .content {
+    padding: 20px;
+  }
+}
