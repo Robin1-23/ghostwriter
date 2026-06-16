@@ -122,8 +122,9 @@
 }
 .emptyTags {
   font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.65);
   font-style: italic;
+  font-weight: 500;
 }
 
 .meters {
@@ -140,8 +141,8 @@
 }
 .meterLabel {
   font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   width: 110px;
 }
 .meterTrack {
@@ -159,8 +160,8 @@
 }
 .meterVal {
   font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   width: 36px;
   text-align: right;
 }
