@@ -14,7 +14,7 @@ function Toggle({ checked = false, onChange }) {
   );
 }
 
-export default function SettingsPanel({ settings, saveSettings, clearProfile, deleteHistory }) {
+export default function SettingsPanel({ settings, saveSettings, clearProfile, deleteHistory, restartTour }) {
   const [clearing, setClearing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [newPersonaName, setNewPersonaName] = useState('');
@@ -243,6 +243,21 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
               <i className="ti ti-plus"></i> Add
             </button>
           </form>
+        </div>
+
+        {/* Help & Onboarding card */}
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Help & onboarding</h3>
+          <p className={styles.cardDesc}>Need a quick guide on how Ghost works?</p>
+          <div style={{ marginTop: 14 }}>
+            <button
+              type="button"
+              className={styles.restartTourBtn}
+              onClick={restartTour}
+            >
+              <i className="ti ti-help" style={{ marginRight: 6 }}></i> Restart onboarding tour
+            </button>
+          </div>
         </div>
       </div>
 

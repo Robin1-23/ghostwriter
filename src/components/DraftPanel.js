@@ -520,7 +520,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
           </div>
 
           {/* Style Overrides Collapsible */}
-          <div className={styles.collapsibleSection} style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+          <div id="tour-overrides" className={styles.collapsibleSection} style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
             <button 
               type="button"
               className={styles.sectionToggle}

@@ -6,6 +6,7 @@ import VoicePanel from '../components/VoicePanel';
 import HistoryPanel from '../components/HistoryPanel';
 import SettingsPanel from '../components/SettingsPanel';
 import DashboardPanel from '../components/DashboardPanel';
+import TourGuide from '../components/TourGuide';
 import styles from './AppShell.module.css';
 
 const PLATFORMS = [
@@ -68,6 +69,14 @@ export default function AppShell() {
 
   const handleClearProfile = () => clearAllProfiles(user?.uid);
 
+  const [runTourKey, setRunTourKey] = useState(0);
+
+  const restartTour = () => {
+    localStorage.removeItem('ghost_tour_completed');
+    setPanel('draft');
+    setRunTourKey(prev => prev + 1);
+  };
+
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -95,7 +104,7 @@ export default function AppShell() {
         </div>
 
         {/* Persona Selector section */}
-        <div className={styles.personaSection}>
+        <div className={styles.personaSection} id="tour-persona">
           <div className={styles.navLabel}>Active Persona</div>
           <div className={styles.personaDropdownWrapper}>
             <select
@@ -122,6 +131,7 @@ export default function AppShell() {
           {NAV.map(n => (
             <button
               key={n.id}
+              id={n.id === 'voice' ? 'tour-voice-nav' : undefined}
               className={`${styles.navItem} ${panel === n.id ? styles.navActive : ''}`}
               onClick={() => {
                 setPanel(n.id);
@@ -139,7 +149,7 @@ export default function AppShell() {
 
         <div className={styles.platformSection}>
           <div className={styles.navLabel}>Platform</div>
-          <div className={styles.platforms}>
+          <div className={styles.platforms} id="tour-platforms">
             {PLATFORMS.map(p => (
               <button
                 key={p.id}
@@ -230,10 +240,12 @@ export default function AppShell() {
               saveSettings={saveSettings}
               clearProfile={handleClearProfile}
               deleteHistory={deleteHistory}
+              restartTour={restartTour}
             />
           )}
         </div>
       </main>
+      <TourGuide key={runTourKey} />
     </div>
   );
 }

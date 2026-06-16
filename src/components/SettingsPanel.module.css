@@ -300,3 +300,30 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.restartTourBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(127, 119, 221, 0.12);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-sm);
+  color: var(--purple-light);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  justify-content: center;
+}
+.restartTourBtn:hover {
+  background: var(--purple-bg);
+  color: #fff;
+  border-color: rgba(127, 119, 221, 0.6);
+  box-shadow: 0 4px 15px rgba(127, 119, 221, 0.15);
+}
+.restartTourBtn i {
+  font-size: 15px;
+}
