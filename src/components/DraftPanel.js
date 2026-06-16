@@ -421,6 +421,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
   const activeDraft = drafts[active] || '';
   const hasResult = !!drafts.a;
   const isDraftEdited = activeDraft && originalDrafts[active] && activeDraft !== originalDrafts[active];
+  const forecast = calculateForecast(activeDraft, active);
 
   return (
     <div className={styles.layout}>
