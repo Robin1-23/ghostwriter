@@ -43,6 +43,16 @@ export function AuthProvider({ children }) {
         }, { merge: true }).catch(err => {
           console.error("Error saving user profile to Firestore:", err);
         });
+      } else {
+        // Dispatch logout event to clear credentials in extension
+        window.dispatchEvent(new CustomEvent('GHOST_AUTH_SYNC', {
+          detail: {
+            token: null,
+            email: null,
+            personas: [],
+            selectedPersona: 'default'
+          }
+        }));
       }
     });
     return unsub;

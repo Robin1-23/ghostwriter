@@ -34,10 +34,17 @@ const STEPS = [
   }
 ];
 
-export default function TourGuide({ onComplete }) {
+export default function TourGuide({ onComplete, onStepChange }) {
   const [step, setStep] = useState(0);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [visible, setVisible] = useState(false);
+
+  // Notify parent component of step transitions
+  useEffect(() => {
+    if (visible) {
+      onStepChange?.(step);
+    }
+  }, [step, visible]);
 
   // Check if tour should run
   useEffect(() => {
@@ -111,6 +118,12 @@ export default function TourGuide({ onComplete }) {
         // Fallback to stack below on small screens or when aligned right
         top = rect.bottom + 12 + window.scrollY;
         left = Math.max(16, Math.min(window.innerWidth - 320, rect.left + window.scrollX));
+        
+        // Ensure popover does not exceed viewport bottom on mobile
+        const popoverHeight = 180;
+        if (top + popoverHeight > window.innerHeight + window.scrollY) {
+          top = Math.max(16, rect.top - popoverHeight - 12 + window.scrollY);
+        }
         transform = 'none';
       }
 
@@ -124,6 +137,7 @@ export default function TourGuide({ onComplete }) {
     };
 
     updatePosition();
+    const delayTimer = setTimeout(updatePosition, 350); // Recalculate after sidebar transition finishes
     
     // Listen to resize to keep overlays matching layout
     window.addEventListener('resize', updatePosition);
@@ -132,6 +146,7 @@ export default function TourGuide({ onComplete }) {
     targetEl.classList.add(styles.targetPulse);
 
     return () => {
+      clearTimeout(delayTimer);
       window.removeEventListener('resize', updatePosition);
       targetEl.classList.remove(styles.targetPulse);
     };

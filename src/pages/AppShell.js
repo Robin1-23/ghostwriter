@@ -44,6 +44,24 @@ export default function AppShell() {
   // Load user settings
   const { settings, saveSettings } = useUserSettings(user?.uid);
 
+  // Sync user credentials and settings with the browser extension
+  React.useEffect(() => {
+    if (user && settings) {
+      user.getIdToken().then(token => {
+        window.dispatchEvent(new CustomEvent('GHOST_AUTH_SYNC', {
+          detail: {
+            token: token,
+            email: user.email,
+            personas: settings.personas || [],
+            selectedPersona: settings.selectedPersona || 'default'
+          }
+        }));
+      }).catch(err => {
+        console.warn("Failed to get auth token for extension sync:", err);
+      });
+    }
+  }, [user, settings]);
+
   // Fetch voice profile based on active persona and platform settings
   const activePersona = settings?.selectedPersona || 'default';
   const activeVoicePlatform = settings?.platformSpecificVoices ? `${activePersona}_${platform}` : activePersona;
@@ -245,7 +263,23 @@ export default function AppShell() {
           )}
         </div>
       </main>
-      <TourGuide key={runTourKey} />
+      <TourGuide 
+        key={runTourKey} 
+        onStepChange={(step) => {
+          const isMobile = window.innerWidth <= 768;
+          if (isMobile) {
+            // Auto-open/close the mobile sidebar depending on the target element
+            if (step === 1 || step === 2 || step === 4) {
+              setIsSidebarOpen(true);
+            } else {
+              setIsSidebarOpen(false);
+            }
+          }
+        }}
+        onComplete={() => {
+          setIsSidebarOpen(false);
+        }}
+      />
     </div>
   );
 }
