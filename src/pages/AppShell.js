@@ -38,6 +38,7 @@ export default function AppShell() {
   const [platform, setPlatform] = useState('email');
   const [tone, setTone] = useState('auto');
   const [preloadMsg, setPreloadMsg] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Load user settings
   const { settings, saveSettings } = useUserSettings(user?.uid);
@@ -54,6 +55,7 @@ export default function AppShell() {
   const loadFromHistory = (draft) => {
     setPreloadMsg(draft);
     setPanel('draft');
+    setIsSidebarOpen(false); // Close sidebar drawer on mobile
   };
 
   const handleClearProfile = () => clearAllProfiles(user?.uid);
@@ -67,12 +69,21 @@ export default function AppShell() {
   };
 
   return (
-    <div className={styles.shell} onMouseMove={handleMouseMove}>
+    <div className={`${styles.shell} ${isSidebarOpen ? styles.sidebarOpen : ''}`} onMouseMove={handleMouseMove}>
+      {/* Sidebar Overlay backdrop for mobile */}
+      {isSidebarOpen && (
+        <div className={styles.sidebarOverlay} onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* Sidebar */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarVisible : ''}`}>
         <div className={styles.logo}>
           <span className={styles.logoDot}></span>
           Ghost
+          {/* Close button for mobile */}
+          <button className={styles.closeSidebarBtn} onClick={() => setIsSidebarOpen(false)} title="Close menu">
+            <i className="ti ti-x" aria-hidden="true"></i>
+          </button>
         </div>
 
         <div className={styles.navSection}>
@@ -81,7 +92,10 @@ export default function AppShell() {
             <button
               key={n.id}
               className={`${styles.navItem} ${panel === n.id ? styles.navActive : ''}`}
-              onClick={() => setPanel(n.id)}
+              onClick={() => {
+                setPanel(n.id);
+                setIsSidebarOpen(false); // Close sidebar drawer on mobile
+              }}
             >
               <i className={`ti ${n.icon}`} aria-hidden="true"></i>
               {n.label}
@@ -99,7 +113,10 @@ export default function AppShell() {
               <button
                 key={p.id}
                 className={`${styles.platformChip} ${platform === p.id ? styles.platformActive : ''}`}
-                onClick={() => setPlatform(p.id)}
+                onClick={() => {
+                  setPlatform(p.id);
+                  setIsSidebarOpen(false); // Close sidebar drawer on mobile
+                }}
                 title={p.label}
               >
                 <i className={`ti ${p.icon}`} aria-hidden="true"></i>
@@ -125,6 +142,10 @@ export default function AppShell() {
       {/* Main */}
       <main className={styles.main}>
         <header className={styles.topbar}>
+          {/* Mobile hamburger menu toggle */}
+          <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(true)} title="Open menu">
+            <i className="ti ti-menu-2" aria-hidden="true"></i>
+          </button>
           <div>
             <h1 className={styles.topTitle}>{PANEL_META[panel].title}</h1>
             <p className={styles.topSub}>{PANEL_META[panel].sub}</p>

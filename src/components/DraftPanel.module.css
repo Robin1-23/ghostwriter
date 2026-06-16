@@ -607,6 +607,15 @@
     grid-template-columns: 1fr;
     gap: 20px;
   }
+  .inputCard, .draftCard {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inputCard, .draftCard {
+    padding: 12px;
+  }
   .draftActions {
     flex-direction: column;
     align-items: stretch;
@@ -615,5 +624,24 @@
   .actionGroup {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+  }
+  .actionBtn {
+    justify-content: center;
+  }
+  .variantsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .toolbarChips {
+    justify-content: center;
+  }
+  .genBtn {
+    justify-content: center;
   }
 }
