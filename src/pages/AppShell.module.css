@@ -202,9 +202,17 @@
   -webkit-backdrop-filter: var(--glass-blur);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   flex-shrink: 0;
   z-index: 5;
+}
+.topbarMainRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
 }
 .topTitle {
   font-size: 16px;
@@ -358,7 +366,13 @@
 
   .topbar {
     padding: 16px 20px;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
+  }
+  
+  .topbarMainRow {
+    width: 100%;
   }
   
   /* Keep sub text hidden on mobile if header gets crowded */

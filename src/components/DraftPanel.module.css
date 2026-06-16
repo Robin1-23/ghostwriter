@@ -602,6 +602,10 @@
   box-shadow: 0 0 10px rgba(29, 158, 117, 0.15) !important;
 }
 
+.mobileTabs {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
@@ -609,6 +613,48 @@
   }
   .inputCard, .draftCard {
     padding: 16px;
+  }
+  .mobileTabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    backdrop-filter: var(--glass-blur);
+  }
+  .mobileTab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.45);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .mobileTab:hover {
+    color: #fff;
+  }
+  .mobileTabActive {
+    background: rgba(127, 119, 221, 0.12) !important;
+    color: var(--purple-light) !important;
+    border: 1px solid rgba(127, 119, 221, 0.25) !important;
+    box-shadow: 0 2px 8px rgba(127, 119, 221, 0.08);
+  }
+  .tabHidden {
+    display: none !important;
+  }
+  .tabVisible {
+    display: flex !important;
   }
 }
 

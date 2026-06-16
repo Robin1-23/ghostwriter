@@ -44,6 +44,7 @@ function calculateHumanScore(text) {
 
 export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, saveDraft, updateDraft, preloadMsg, onPreloadConsumed, settings }) {
   const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('input');
   const [context, setContext] = useState('');
   const [chip, setChip] = useState('match');
   const [loading, setLoading] = useState(false);
@@ -160,6 +161,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     setHasSavedProfile(false);
     setActive('a');
     setActiveDocId(null);
+    setActiveTab('output'); // Auto-switch to response tab on mobile
     try {
       const result = await generateReplies({
         message,
@@ -350,8 +352,26 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
   return (
     <div className={styles.layout}>
+      {/* Mobile Tab Switcher */}
+      <div className={styles.mobileTabs}>
+        <button
+          type="button"
+          className={`${styles.mobileTab} ${activeTab === 'input' ? styles.mobileTabActive : ''}`}
+          onClick={() => setActiveTab('input')}
+        >
+          <i className="ti ti-edit"></i> Write
+        </button>
+        <button
+          type="button"
+          className={`${styles.mobileTab} ${activeTab === 'output' ? styles.mobileTabActive : ''}`}
+          onClick={() => setActiveTab('output')}
+        >
+          <i className="ti ti-mail-opened"></i> Response
+        </button>
+      </div>
+
       {/* Input column */}
-      <div className={styles.inputCol}>
+      <div className={`${styles.inputCol} ${activeTab === 'input' ? styles.tabVisible : styles.tabHidden}`}>
         <div className={styles.sectionLabel}>Drafting Workshop</div>
         <div className={styles.inputCard}>
           {/* Thread Context Section */}
@@ -536,7 +556,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
       </div>
 
       {/* Output column */}
-      <div className={styles.outputCol}>
+      <div className={`${styles.outputCol} ${activeTab === 'output' ? styles.tabVisible : styles.tabHidden}`}>
         <div className={styles.sectionLabel}>Your reply</div>
         <div className={styles.draftCard}>
           <div className={styles.draftMeta}>

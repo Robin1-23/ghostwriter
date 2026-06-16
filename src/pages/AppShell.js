@@ -142,13 +142,15 @@ export default function AppShell() {
       {/* Main */}
       <main className={styles.main}>
         <header className={styles.topbar}>
-          {/* Mobile hamburger menu toggle */}
-          <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(true)} title="Open menu">
-            <i className="ti ti-menu-2" aria-hidden="true"></i>
-          </button>
-          <div>
-            <h1 className={styles.topTitle}>{PANEL_META[panel].title}</h1>
-            <p className={styles.topSub}>{PANEL_META[panel].sub}</p>
+          <div className={styles.topbarMainRow}>
+            {/* Mobile hamburger menu toggle */}
+            <button className={styles.menuBtn} onClick={() => setIsSidebarOpen(true)} title="Open menu">
+              <i className="ti ti-menu-2" aria-hidden="true"></i>
+            </button>
+            <div>
+              <h1 className={styles.topTitle}>{PANEL_META[panel].title}</h1>
+              <p className={styles.topSub}>{PANEL_META[panel].sub}</p>
+            </div>
           </div>
           {panel === 'draft' && (
             <div className={styles.toneTabs}>

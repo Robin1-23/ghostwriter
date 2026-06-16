@@ -28,8 +28,10 @@
   font-weight: 600;
   letter-spacing: -0.5px;
   font-family: 'Inter', sans-serif;
+  color: #ffffff;
   background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .logoDot {
@@ -94,8 +96,10 @@
   letter-spacing: -1.8px;
   margin-bottom: 24px;
   font-family: 'Instrument Serif', serif;
+  color: #ffffff;
   background: linear-gradient(to bottom, #ffffff 60%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .heroAccent {
@@ -104,6 +108,7 @@
   -webkit-text-fill-color: initial;
   background: linear-gradient(135deg, var(--purple-light) 0%, #d4d0f0 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .heroSub {
@@ -464,5 +469,35 @@
   }
   .finalCta h2 {
     font-size: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .demoTabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    border-radius: 20px;
+    padding: 4px;
+  }
+  .demoTab {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroH1 {
+    font-size: 34px;
+    letter-spacing: -1px;
+  }
+  .heroSub {
+    font-size: 15px;
+  }
+  .ctaPrimary {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 14px;
   }
 }
