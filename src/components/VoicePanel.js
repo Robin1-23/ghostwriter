@@ -10,6 +10,58 @@ const METERS = [
   { key: 'assertiveness', label: 'Assertiveness' },
 ];
 
+function VoiceRadar({ profile }) {
+  const f = profile.formality !== undefined ? profile.formality : 50;
+  const w = profile.warmth !== undefined ? profile.warmth : 50;
+  const b = profile.brevity !== undefined ? profile.brevity : 50;
+  const a = profile.assertiveness !== undefined ? profile.assertiveness : 50;
+
+  // Calculate polygon points based on 0-100 values
+  const p0 = { x: 50, y: 50 - 0.4 * f };
+  const p1 = { x: 50 + 0.4 * w, y: 50 };
+  const p2 = { x: 50, y: 50 + 0.4 * b };
+  const p3 = { x: 50 - 0.4 * a, y: 50 };
+
+  const pointsString = `${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
+
+  return (
+    <div className={styles.radarWrapper}>
+      <svg viewBox="0 0 100 100" className={styles.radarSvg}>
+        {/* Grid lines (Cross axes) */}
+        <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        
+        {/* Background concentric squares or webs */}
+        <polygon points="50,10 90,50 50,90 10,50" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        <polygon points="50,20 80,50 50,80 20,50" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" />
+        <polygon points="50,30 70,50 50,70 30,50" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" />
+        <polygon points="50,40 60,50 50,60 40,50" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" />
+
+        {/* Dynamic active polygon representing values */}
+        <polygon 
+          points={pointsString} 
+          fill="rgba(127, 119, 221, 0.2)" 
+          stroke="var(--purple-light)" 
+          strokeWidth="1.2"
+          style={{ transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+        />
+
+        {/* Concentric points */}
+        <circle cx={p0.x} cy={p0.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.6s' }} />
+        <circle cx={p1.x} cy={p1.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.6s' }} />
+        <circle cx={p2.x} cy={p2.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.6s' }} />
+        <circle cx={p3.x} cy={p3.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.6s' }} />
+
+        {/* Labels */}
+        <text x="50" y="7" textAnchor="middle" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">FORMALITY</text>
+        <text x="93" y="51.5" textAnchor="start" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">WARMTH</text>
+        <text x="50" y="97.5" textAnchor="middle" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">BREVITY</text>
+        <text x="7" y="51.5" textAnchor="end" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">ASSERTIVENESS</text>
+      </svg>
+    </div>
+  );
+}
+
 const TRAIN_PLATFORMS = [
   { id: 'global', label: 'Global', icon: 'ti-world' },
   { id: 'email', label: 'Email', icon: 'ti-mail' },
@@ -118,16 +170,19 @@ export default function VoicePanel({ userSettings, uid }) {
             <span className={styles.emptyTags}>No traits analyzed yet. Add writing samples below to extract traits.</span>
           )}
         </div>
-        <div className={styles.meters}>
-          {METERS.map(m => (
-            <div key={m.key} className={styles.meterRow}>
-              <div className={styles.meterLabel}>{m.label}</div>
-              <div className={styles.meterTrack}>
-                <div className={styles.meterFill} style={{width: `${profile[m.key] || 0}%`}}></div>
+        <div className={styles.fpBody}>
+          <div className={styles.meters}>
+            {METERS.map(m => (
+              <div key={m.key} className={styles.meterRow}>
+                <div className={styles.meterLabel}>{m.label}</div>
+                <div className={styles.meterTrack}>
+                  <div className={styles.meterFill} style={{width: `${profile[m.key] || 0}%`}}></div>
+                </div>
+                <div className={styles.meterVal}>{profile[m.key] || 0}%</div>
               </div>
-              <div className={styles.meterVal}>{profile[m.key] || 0}%</div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <VoiceRadar profile={profile} />
         </div>
       </div>
 

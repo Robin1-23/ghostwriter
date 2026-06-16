@@ -30,6 +30,12 @@ const DEFAULT_SETTINGS = {
   shareAnalytics: false,
   openaiApiKey: '',
   apiProxyUrl: '',
+  selectedPersona: 'default',
+  personas: [
+    { id: 'default', name: 'Standard' },
+    { id: 'ceo', name: 'Executive' },
+    { id: 'casual', name: 'Friend / Casual' },
+  ],
 };
 
 // Voice profile — read/write from Firestore

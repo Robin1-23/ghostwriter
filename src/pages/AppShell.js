@@ -43,14 +43,22 @@ export default function AppShell() {
   // Load user settings
   const { settings, saveSettings } = useUserSettings(user?.uid);
 
-  // Fetch voice profile based on active platform settings
-  const activeVoicePlatform = settings?.platformSpecificVoices ? platform : 'global';
+  // Fetch voice profile based on active persona and platform settings
+  const activePersona = settings?.selectedPersona || 'default';
+  const activeVoicePlatform = settings?.platformSpecificVoices ? `${activePersona}_${platform}` : activePersona;
   const { profile, saveProfile } = useVoiceProfile(user?.uid, activeVoicePlatform);
 
   // History & deletion
   const { drafts, saveDraft, updateDraft, deleteHistory } = useDraftHistory(user?.uid);
 
   const handleLogout = () => logout();
+
+  const handlePersonaChange = async (personaId) => {
+    await saveSettings({
+      ...settings,
+      selectedPersona: personaId
+    });
+  };
 
   const loadFromHistory = (draft) => {
     setPreloadMsg(draft);
@@ -84,6 +92,29 @@ export default function AppShell() {
           <button className={styles.closeSidebarBtn} onClick={() => setIsSidebarOpen(false)} title="Close menu">
             <i className="ti ti-x" aria-hidden="true"></i>
           </button>
+        </div>
+
+        {/* Persona Selector section */}
+        <div className={styles.personaSection}>
+          <div className={styles.navLabel}>Active Persona</div>
+          <div className={styles.personaDropdownWrapper}>
+            <select
+              className={styles.personaSelect}
+              value={settings?.selectedPersona || 'default'}
+              onChange={(e) => handlePersonaChange(e.target.value)}
+              title="Select Persona Profile"
+            >
+              {settings?.personas?.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              )) || (
+                <>
+                  <option value="default">Standard</option>
+                  <option value="ceo">Executive</option>
+                  <option value="casual">Friend / Casual</option>
+                </>
+              )}
+            </select>
+          </div>
         </div>
 
         <div className={styles.navSection}>

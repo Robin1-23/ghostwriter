@@ -17,6 +17,60 @@ function Toggle({ checked = false, onChange }) {
 export default function SettingsPanel({ settings, saveSettings, clearProfile, deleteHistory }) {
   const [clearing, setClearing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [newPersonaName, setNewPersonaName] = useState('');
+
+  const handleAddPersona = async (e) => {
+    e.preventDefault();
+    if (!newPersonaName.trim()) return;
+    const cleanName = newPersonaName.trim();
+    const id = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    if (!id) return;
+    
+    // Check if ID already exists
+    if (settings.personas?.some(p => p.id === id)) {
+      alert("A persona with a similar name already exists.");
+      return;
+    }
+
+    const updatedPersonas = [
+      ...(settings.personas || []),
+      { id, name: cleanName }
+    ];
+
+    try {
+      await saveSettings({
+        ...settings,
+        personas: updatedPersonas
+      });
+      setNewPersonaName('');
+    } catch (err) {
+      console.error("Failed to add persona", err);
+    }
+  };
+
+  const handleDeletePersona = async (id) => {
+    if (id === 'default') {
+      alert("The Standard persona cannot be deleted.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this writing persona? All voice parameters and configurations associated with it will be archived.")) return;
+
+    const updatedPersonas = (settings.personas || []).filter(p => p.id !== id);
+    let newSelected = settings.selectedPersona;
+    if (settings.selectedPersona === id) {
+      newSelected = 'default';
+    }
+
+    try {
+      await saveSettings({
+        ...settings,
+        personas: updatedPersonas,
+        selectedPersona: newSelected
+      });
+    } catch (err) {
+      console.error("Failed to delete persona", err);
+    }
+  };
 
   const handleToggle = async (key, val) => {
     if (!settings) return;
@@ -149,6 +203,46 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
               />
             </div>
           </div>
+        </div>
+
+        {/* Persona Manager card */}
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Persona manager</h3>
+          <p className={styles.cardDesc}>Create and delete custom writing alter-egos (Isolation profiles)</p>
+          <div className={styles.personaList}>
+            {(settings.personas || []).map(p => (
+              <div key={p.id} className={styles.personaRow}>
+                <div className={styles.personaInfo}>
+                  <i className="ti ti-user-pentagon" style={{ color: p.id === settings.selectedPersona ? 'var(--purple-light)' : 'rgba(255, 255, 255, 0.35)' }}></i>
+                  <span className={p.id === settings.selectedPersona ? styles.personaActiveName : ''}>{p.name}</span>
+                  {p.id === settings.selectedPersona && <span className={styles.activeLabel}>Active</span>}
+                </div>
+                {p.id !== 'default' && (
+                  <button
+                    type="button"
+                    className={styles.deletePersonaBtn}
+                    onClick={() => handleDeletePersona(p.id)}
+                    title={`Delete ${p.name}`}
+                  >
+                    <i className="ti ti-trash"></i>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <form onSubmit={handleAddPersona} className={styles.addPersonaForm}>
+            <input
+              type="text"
+              className={styles.textInput}
+              placeholder="Persona name (e.g. Support)..."
+              value={newPersonaName}
+              onChange={e => setNewPersonaName(e.target.value)}
+              maxLength={25}
+            />
+            <button type="submit" className={styles.addPersonaBtn} disabled={!newPersonaName.trim()}>
+              <i className="ti ti-plus"></i> Add
+            </button>
+          </form>
         </div>
       </div>
 

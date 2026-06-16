@@ -691,3 +691,80 @@
     justify-content: center;
   }
 }
+
+.slidersWrapper {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-top: 14px;
+}
+.radarWrapper {
+  flex: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+.radarSvg {
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 0 10px rgba(127, 119, 221, 0.2));
+}
+
+.feedbackGauges {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.forecastContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.forecastItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.45);
+}
+.forecastItem i {
+  font-size: 13px;
+}
+.forecastItem strong {
+  font-weight: 600;
+}
+.riskHigh {
+  color: #ff5b5b !important;
+}
+.riskHigh i {
+  color: #ff5b5b !important;
+}
+.riskHigh strong {
+  color: #ff5b5b !important;
+}
+.riskLow {
+  color: #38ef7d !important;
+}
+.riskLow i {
+  color: #38ef7d !important;
+}
+.riskLow strong {
+  color: #38ef7d !important;
+}
+
+@media (max-width: 600px) {
+  .slidersWrapper {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .radarWrapper {
+    max-width: 140px;
+    margin: 0 auto;
+  }
+}

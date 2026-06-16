@@ -12,6 +12,78 @@ const PLATFORM_NAMES = {
 };
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Japanese', 'Chinese', 'Hindi'];
 
+function calculateForecast(text, variantId) {
+  if (!text || text.trim().length < 5) return null;
+  const words = text.split(/\s+/).length;
+  
+  // Set defaults based on standard variants
+  const warmth = variantId === 'b' ? 85 : (variantId === 'c' ? 48 : 65);
+  const formality = variantId === 'a' ? 78 : (variantId === 'b' ? 40 : 58);
+  
+  let sentiment = 72 + (warmth * 0.18) + (formality * 0.04);
+  if (words < 12) sentiment -= 8; // too brief can sound curt
+  
+  // Scan for common passive-aggressive triggers
+  const passiveAggressiveKeywords = ['per my last', 'as stated', 'actually', 'regards', 'clarify', 'please note', 'obviously'];
+  let passAggScore = 6;
+  const lowerText = text.toLowerCase();
+  passiveAggressiveKeywords.forEach(kw => {
+    if (lowerText.includes(kw)) passAggScore += 24;
+  });
+
+  return {
+    positiveOutlook: Math.min(99, Math.max(45, Math.round(sentiment))),
+    passiveAggressiveness: Math.min(95, passAggScore),
+    relationshipVibe: passAggScore > 25 ? 'Stiff' : (warmth > 75 ? 'Warm' : 'Professional'),
+  };
+}
+
+function VoiceRadar({ formality, warmth, brevity, assertiveness }) {
+  // Calculate polygon points based on 0-100 values
+  const p0 = { x: 50, y: 50 - 0.4 * formality };
+  const p1 = { x: 50 + 0.4 * warmth, y: 50 };
+  const p2 = { x: 50, y: 50 + 0.4 * brevity };
+  const p3 = { x: 50 - 0.4 * assertiveness, y: 50 };
+
+  const pointsString = `${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
+
+  return (
+    <div className={styles.radarWrapper}>
+      <svg viewBox="0 0 100 100" className={styles.radarSvg}>
+        {/* Grid lines (Cross axes) */}
+        <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        
+        {/* Background concentric squares or webs */}
+        <polygon points="50,10 90,50 50,90 10,50" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="0.5" />
+        <polygon points="50,20 80,50 50,80 20,50" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" />
+        <polygon points="50,30 70,50 50,70 30,50" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" />
+
+        {/* Dynamic active polygon representing values */}
+        <polygon 
+          points={pointsString} 
+          fill="rgba(127, 119, 221, 0.2)" 
+          stroke="var(--purple-light)" 
+          strokeWidth="1.2"
+          style={{ transition: 'all 0.4s ease-out' }}
+        />
+
+        {/* Concentric points */}
+        <circle cx={p0.x} cy={p0.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.4s' }} />
+        <circle cx={p1.x} cy={p1.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.4s' }} />
+        <circle cx={p2.x} cy={p2.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.4s' }} />
+        <circle cx={p3.x} cy={p3.y} r="2.2" fill="var(--purple-light)" style={{ transition: 'all 0.4s' }} />
+
+        {/* Labels */}
+        <text x="50" y="7" textAnchor="middle" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">FORMALITY</text>
+        <text x="93" y="51.5" textAnchor="start" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">WARMTH</text>
+        <text x="50" y="97.5" textAnchor="middle" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">BREVITY</text>
+        <text x="7" y="51.5" textAnchor="end" fontSize="4.5" fill="rgba(255,255,255,0.4)" fontWeight="600" fontFamily="Inter, sans-serif">ASSERTIVENESS</text>
+      </svg>
+    </div>
+  );
+}
+
 function calculateHumanScore(text) {
   if (!text || text.trim().length < 10) return 100;
   
@@ -457,49 +529,57 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
               <i className={`ti ${showSliders ? 'ti-chevron-up' : 'ti-chevron-down'}`}></i>
             </button>
             {showSliders && (
-              <div className={styles.slidersGrid}>
-                <div className={styles.sliderGroup}>
-                  <div className={styles.sliderLabelRow}>
-                    <span>Formality</span>
-                    <span>{formalityOverride}%</span>
+              <div className={styles.slidersWrapper}>
+                <div className={styles.slidersGrid}>
+                  <div className={styles.sliderGroup}>
+                    <div className={styles.sliderLabelRow}>
+                      <span>Formality</span>
+                      <span>{formalityOverride}%</span>
+                    </div>
+                    <input 
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={formalityOverride}
+                      onChange={e => setFormalityOverride(parseInt(e.target.value))}
+                      className={styles.sliderInput}
+                    />
                   </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={formalityOverride}
-                    onChange={e => setFormalityOverride(parseInt(e.target.value))}
-                    className={styles.sliderInput}
-                  />
-                </div>
-                <div className={styles.sliderGroup}>
-                  <div className={styles.sliderLabelRow}>
-                    <span>Warmth</span>
-                    <span>{warmthOverride}%</span>
+                  <div className={styles.sliderGroup}>
+                    <div className={styles.sliderLabelRow}>
+                      <span>Warmth</span>
+                      <span>{warmthOverride}%</span>
+                    </div>
+                    <input 
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={warmthOverride}
+                      onChange={e => setWarmthOverride(parseInt(e.target.value))}
+                      className={styles.sliderInput}
+                    />
                   </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={warmthOverride}
-                    onChange={e => setWarmthOverride(parseInt(e.target.value))}
-                    className={styles.sliderInput}
-                  />
-                </div>
-                <div className={styles.sliderGroup}>
-                  <div className={styles.sliderLabelRow}>
-                    <span>Brevity (Length)</span>
-                    <span>{brevityOverride}%</span>
+                  <div className={styles.sliderGroup}>
+                    <div className={styles.sliderLabelRow}>
+                      <span>Brevity (Length)</span>
+                      <span>{brevityOverride}%</span>
+                    </div>
+                    <input 
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={brevityOverride}
+                      onChange={e => setBrevityOverride(parseInt(e.target.value))}
+                      className={styles.sliderInput}
+                    />
                   </div>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={brevityOverride}
-                    onChange={e => setBrevityOverride(parseInt(e.target.value))}
-                    className={styles.sliderInput}
-                  />
                 </div>
+                <VoiceRadar 
+                  formality={formalityOverride}
+                  warmth={warmthOverride}
+                  brevity={brevityOverride}
+                  assertiveness={voiceProfile?.assertiveness || 50}
+                />
               </div>
             )}
           </div>
@@ -597,9 +677,27 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
           {perceptions[active] && (
             <div className={styles.draftFeedbackRow}>
-              <div className={styles.perceptionBadge}>
-                <i className="ti ti-messages" aria-hidden="true"></i>
-                <span>Perception: <strong>{perceptions[active]}</strong></span>
+              <div className={styles.feedbackGauges}>
+                <div className={styles.perceptionBadge}>
+                  <i className="ti ti-messages" aria-hidden="true"></i>
+                  <span>Perception: <strong>{perceptions[active]}</strong></span>
+                </div>
+                {forecast && (
+                  <div className={styles.forecastContainer}>
+                    <div className={styles.forecastItem} title="Recipient Outcome Outlook">
+                      <i className="ti ti-target" aria-hidden="true"></i>
+                      <span>Outlook: <strong>{forecast.positiveOutlook}%</strong></span>
+                    </div>
+                    <div className={`${styles.forecastItem} ${forecast.passiveAggressiveness > 25 ? styles.riskHigh : styles.riskLow}`} title="Passive-Aggressive Risk">
+                      <i className="ti ti-alert-triangle" aria-hidden="true"></i>
+                      <span>PA Risk: <strong>{forecast.passiveAggressiveness}%</strong></span>
+                    </div>
+                    <div className={styles.forecastItem} title="Relationship Vibe">
+                      <i className="ti ti-heart" aria-hidden="true"></i>
+                      <span>Vibe: <strong>{forecast.relationshipVibe}</strong></span>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {isDraftEdited && (
