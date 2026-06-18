@@ -1,6 +1,5 @@
-const CACHE_NAME = 'ghost-cache-v1';
+const CACHE_NAME = 'ghost-cache-v3';
 const ASSETS = [
-  '/app',
   '/index.html',
   '/favicon.svg',
 ];
@@ -40,6 +39,27 @@ self.addEventListener('fetch', (e) => {
   // Do not intercept authentication, cloud function APIs or firestore calls
   if (url.pathname.startsWith('/__/auth/') || url.pathname.startsWith('/api/')) return;
 
+  const isNavigation = e.request.mode === 'navigate';
+
+  if (isNavigation) {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const cacheCopy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put('/index.html', cacheCopy);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -54,11 +74,6 @@ self.addEventListener('fetch', (e) => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // Return index.html for navigation requests when offline (to support SPA client routing)
-        if (e.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
       });
     })
   );
