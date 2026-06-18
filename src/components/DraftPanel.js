@@ -12,6 +12,12 @@ const PLATFORM_NAMES = {
 };
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Japanese', 'Chinese', 'Hindi'];
 
+const ALL_VARIANTS = [
+  { id: 'a', label: 'Variant A — Standard' },
+  { id: 'b', label: 'Variant B — Casual' },
+  { id: 'c', label: 'Variant C — Brief' },
+];
+
 function calculateForecast(text, variantId) {
   if (!text || text.trim().length < 5) return null;
   const words = text.split(/\s+/).length;
@@ -839,10 +845,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
           <>
             <div className={styles.sectionLabel} style={{marginTop: 16}}>Other variants</div>
             <div className={styles.variantsGrid}>
-              {[
-                { id: 'b', label: 'Variant B — Casual' },
-                { id: 'c', label: 'Variant C — Brief' },
-              ].map(v => (
+              {ALL_VARIANTS.filter(v => v.id !== active).map(v => (
                 <div
                   key={v.id}
                   className={`${styles.variantCard} ${active === v.id ? styles.variantActive : ''}`}
