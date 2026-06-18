@@ -34,7 +34,7 @@ const STEPS = [
   }
 ];
 
-export default function TourGuide({ onComplete, onStepChange }) {
+export default function TourGuide({ userId, onComplete, onStepChange }) {
   const [step, setStep] = useState(0);
   const [popoverStyle, setPopoverStyle] = useState({});
   const [visible, setVisible] = useState(false);
@@ -46,15 +46,17 @@ export default function TourGuide({ onComplete, onStepChange }) {
     }
   }, [step, visible]);
 
-  // Check if tour should run
+  // Check if tour should run scoped to the user ID
   useEffect(() => {
-    const isCompleted = localStorage.getItem('ghost_tour_completed');
+    if (!userId) return; // Wait until active userId is resolved
+    
+    const isCompleted = localStorage.getItem(`ghost_tour_completed_${userId}`);
     if (!isCompleted) {
       // Start tour after a brief delay so page layout fully stabilizes
       const timer = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (!visible) return;
@@ -167,6 +169,9 @@ export default function TourGuide({ onComplete, onStepChange }) {
   };
 
   const handleClose = () => {
+    if (userId) {
+      localStorage.setItem(`ghost_tour_completed_${userId}`, 'true');
+    }
     localStorage.setItem('ghost_tour_completed', 'true');
     setVisible(false);
     onComplete?.();

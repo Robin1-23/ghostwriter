@@ -90,6 +90,9 @@ export default function AppShell() {
   const [runTourKey, setRunTourKey] = useState(0);
 
   const restartTour = () => {
+    if (user?.uid) {
+      localStorage.removeItem(`ghost_tour_completed_${user.uid}`);
+    }
     localStorage.removeItem('ghost_tour_completed');
     setPanel('draft');
     setRunTourKey(prev => prev + 1);
@@ -264,6 +267,7 @@ export default function AppShell() {
         </div>
       </main>
       <TourGuide 
+        userId={user?.uid}
         key={runTourKey} 
         onStepChange={(step) => {
           const isMobile = window.innerWidth <= 768;
