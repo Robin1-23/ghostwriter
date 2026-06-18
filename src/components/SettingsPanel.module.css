@@ -269,8 +269,122 @@
 
 .addPersonaForm {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.addPersonaInputRow {
+  display: flex;
   gap: 8px;
   align-items: center;
+  width: 100%;
+}
+
+.clonerToggleRow {
+  display: flex;
+  width: 100%;
+}
+
+.clonerToggleBtn {
+  background: transparent;
+  border: none;
+  color: var(--purple-light);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.clonerToggleBtn:hover:not(:disabled) {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.clonerToggleBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clonerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.clonerTextarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: var(--text-1);
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 10px;
+  resize: vertical;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.clonerTextarea:focus {
+  border-color: rgba(127, 119, 221, 0.35);
+}
+
+.clonerTextarea::placeholder {
+  color: rgba(255, 255, 255, 0.16);
+}
+
+.clonerFileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.fileUploadLabel {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fileUploadLabel:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(127, 119, 221, 0.4);
+  color: #fff;
+}
+
+.clearFileBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.clearFileBtn:hover {
+  color: #ff5b5b;
 }
 
 .addPersonaBtn {

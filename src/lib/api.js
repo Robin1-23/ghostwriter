@@ -222,3 +222,20 @@ Return ONLY valid JSON (no markdown wrapping, no backticks, no markdown blocks).
   const raw = await callOpenAI(system, userMsg, 600, true, settings);
   return JSON.parse(cleanJson(raw));
 }
+
+// Analyze a text sample or loaded file to extract voice traits and coordinates
+export async function analyzeWritingStyle(sampleText, settings) {
+  const system = `You are a writing style analysis bot. Your job is to analyze the user's provided writing sample and output a JSON object representing their writing style metrics on a scale of 0-100, and a list of writing style tags.
+The JSON response MUST match this structure:
+{
+  "formality": <integer 0-100>,
+  "warmth": <integer 0-100>,
+  "brevity": <integer 0-100>,
+  "assertiveness": <integer 0-100>,
+  "tags": [<array of 4 to 6 concise style adjectives, e.g. "Low fluff", "Direct", "Friendly", etc.>]
+}
+Ensure the keys match exactly and all values are of correct types. Return ONLY valid JSON (no markdown wrapping, no backticks, no markdown blocks).`;
+
+  const raw = await callOpenAI(system, `Here is my writing sample:\n\n${sampleText}`, 500, true, settings);
+  return JSON.parse(cleanJson(raw));
+}

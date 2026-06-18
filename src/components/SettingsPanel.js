@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { db } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { analyzeWritingStyle } from '../lib/api';
 import styles from './SettingsPanel.module.css';
 
 function Toggle({ checked = false, onChange }) {
@@ -14,10 +17,25 @@ function Toggle({ checked = false, onChange }) {
   );
 }
 
-export default function SettingsPanel({ settings, saveSettings, clearProfile, deleteHistory, restartTour }) {
+export default function SettingsPanel({ settings, saveSettings, clearProfile, deleteHistory, restartTour, uid }) {
   const [clearing, setClearing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [newPersonaName, setNewPersonaName] = useState('');
+  const [showCloner, setShowCloner] = useState(false);
+  const [sampleText, setSampleText] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [cloning, setCloning] = useState(false);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      setSampleText(evt.target.result);
+      setFileName(file.name);
+    };
+    reader.readAsText(file);
+  };
 
   const [canInstall, setCanInstall] = React.useState(!!window.deferredInstallPrompt);
 
@@ -54,19 +72,48 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
       return;
     }
 
-    const updatedPersonas = [
-      ...(settings.personas || []),
-      { id, name: cleanName }
-    ];
-
+    setCloning(true);
     try {
+      let profileData = null;
+      if (showCloner && sampleText.trim()) {
+        const analysis = await analyzeWritingStyle(sampleText, settings);
+        profileData = {
+          tags: analysis.tags || [],
+          formality: analysis.formality !== undefined ? analysis.formality : 50,
+          warmth: analysis.warmth !== undefined ? analysis.warmth : 50,
+          brevity: analysis.brevity !== undefined ? analysis.brevity : 50,
+          assertiveness: analysis.assertiveness !== undefined ? analysis.assertiveness : 50,
+          sampleCount: 1,
+        };
+      }
+
+      const updatedPersonas = [
+        ...(settings.personas || []),
+        { id, name: cleanName }
+      ];
+
+      // Save persona metadata to settings
       await saveSettings({
         ...settings,
         personas: updatedPersonas
       });
+
+      // Save analyzed voice profile to Firestore if sample was provided
+      if (profileData && uid) {
+        const ref = doc(db, 'users', uid, 'data', `voiceProfile_${id}`);
+        await setDoc(ref, profileData);
+      }
+
       setNewPersonaName('');
+      setSampleText('');
+      setFileName('');
+      setShowCloner(false);
+      alert(`Persona "${cleanName}" added successfully!`);
     } catch (err) {
       console.error("Failed to add persona", err);
+      alert("Error adding persona: " + err.message);
+    } finally {
+      setCloning(false);
     }
   };
 
@@ -253,17 +300,82 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
             ))}
           </div>
           <form onSubmit={handleAddPersona} className={styles.addPersonaForm}>
-            <input
-              type="text"
-              className={styles.textInput}
-              placeholder="Persona name (e.g. Support)..."
-              value={newPersonaName}
-              onChange={e => setNewPersonaName(e.target.value)}
-              maxLength={25}
-            />
-            <button type="submit" className={styles.addPersonaBtn} disabled={!newPersonaName.trim()}>
-              <i className="ti ti-plus"></i> Add
-            </button>
+            <div className={styles.addPersonaInputRow}>
+              <input
+                type="text"
+                className={styles.textInput}
+                placeholder="Persona name (e.g. Support)..."
+                value={newPersonaName}
+                onChange={e => setNewPersonaName(e.target.value)}
+                maxLength={25}
+                disabled={cloning}
+              />
+              <button 
+                type="submit" 
+                className={styles.addPersonaBtn} 
+                disabled={!newPersonaName.trim() || cloning}
+              >
+                {cloning ? (
+                  <><i className="ti ti-loader-2" style={{ animation: 'spin 1s linear infinite' }}></i> Cloning...</>
+                ) : (
+                  <>
+                    <i className="ti ti-plus" aria-hidden="true"></i>
+                    <span>{sampleText.trim() ? 'Add & Clone' : 'Add'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className={styles.clonerToggleRow}>
+              <button
+                type="button"
+                className={styles.clonerToggleBtn}
+                onClick={() => setShowCloner(!showCloner)}
+                disabled={cloning}
+              >
+                <i className={`ti ${showCloner ? 'ti-chevron-up' : 'ti-chevron-down'}`} aria-hidden="true" style={{ marginRight: 6 }}></i>
+                <span>Clone style from writing sample (AI analysis)</span>
+              </button>
+            </div>
+
+            {showCloner && (
+              <div className={styles.clonerContent}>
+                <textarea
+                  className={styles.clonerTextarea}
+                  placeholder="Paste a writing sample of this style here (e.g. emails, posts, or articles) so AI can analyze the tone fingerprint..."
+                  value={sampleText}
+                  onChange={e => setSampleText(e.target.value)}
+                  rows={4}
+                  disabled={cloning}
+                />
+                <div className={styles.clonerFileRow}>
+                  <label className={styles.fileUploadLabel}>
+                    <i className="ti ti-file-upload" aria-hidden="true" style={{ marginRight: 6 }}></i>
+                    {fileName ? `File: ${fileName}` : "Upload .txt sample file"}
+                    <input
+                      type="file"
+                      accept=".txt"
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                      disabled={cloning}
+                    />
+                  </label>
+                  {fileName && (
+                    <button
+                      type="button"
+                      className={styles.clearFileBtn}
+                      onClick={() => {
+                        setFileName('');
+                        setSampleText('');
+                      }}
+                      disabled={cloning}
+                    >
+                      Clear file
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </form>
         </div>
 

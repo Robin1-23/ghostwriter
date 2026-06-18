@@ -871,3 +871,130 @@
   font-family: inherit;
   box-sizing: border-box;
 }
+
+.slidersControls {
+  flex: 1.3;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tone Presets Row & Chips */
+.presetsRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 14px;
+}
+
+.presetChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.presetChip:hover {
+  background: rgba(127, 119, 221, 0.08);
+  border-color: rgba(127, 119, 221, 0.35);
+  color: var(--purple-light);
+  transform: translateY(-1px);
+}
+
+.presetChip i {
+  font-size: 13px;
+}
+
+/* Override Modes Switcher */
+.overrideModes {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.overrideModeTab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-family: inherit;
+  outline: none;
+}
+
+.overrideModeTab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.overrideModeTabActive {
+  background: rgba(127, 119, 221, 0.12) !important;
+  color: var(--purple-light) !important;
+  border: 1px solid rgba(127, 119, 221, 0.15) !important;
+}
+
+/* Persona Blender coordinate grid */
+.blenderContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.blenderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+}
+
+.blenderCoords {
+  color: var(--purple-light);
+  font-weight: 700;
+}
+
+.blenderCanvasWrapper {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 280px;
+  margin: 0 auto;
+  background: radial-gradient(circle at 50% 50%, rgba(127, 119, 221, 0.05), transparent 70%), rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  position: relative;
+  overflow: hidden;
+}
+
+.blenderSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+  overflow: visible;
+}

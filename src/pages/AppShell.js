@@ -6,6 +6,8 @@ import VoicePanel from '../components/VoicePanel';
 import HistoryPanel from '../components/HistoryPanel';
 import SettingsPanel from '../components/SettingsPanel';
 import DashboardPanel from '../components/DashboardPanel';
+import InboxPanel from '../components/InboxPanel';
+import CommandBar from '../components/CommandBar';
 import TourGuide from '../components/TourGuide';
 import styles from './AppShell.module.css';
 
@@ -20,6 +22,7 @@ const PLATFORMS = [
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'ti-layout-dashboard' },
   { id: 'draft', label: 'Draft reply', icon: 'ti-edit' },
+  { id: 'inbox', label: 'Inbox Co-Pilot', icon: 'ti-mail-fast' },
   { id: 'voice', label: 'My voice', icon: 'ti-microphone' },
   { id: 'history', label: 'History', icon: 'ti-history' },
   { id: 'settings', label: 'Settings', icon: 'ti-settings' },
@@ -28,6 +31,7 @@ const NAV = [
 const PANEL_META = {
   dashboard: { title: 'Dashboard', sub: 'Your writing performance and productivity metrics' },
   draft: { title: 'Draft a reply', sub: 'Paste the message you received — Ghost replies in your voice' },
+  inbox: { title: 'Inbox Co-Pilot', sub: 'Background pre-drafted responses for your incoming emails' },
   voice: { title: 'My voice', sub: 'Train Ghost with samples of your own writing' },
   history: { title: 'History', sub: 'Your recent ghostwritten drafts' },
   settings: { title: 'Settings', sub: 'Customize how Ghost writes for you' },
@@ -253,6 +257,13 @@ export default function AppShell() {
               uid={user?.uid}
             />
           )}
+          {panel === 'inbox' && (
+            <InboxPanel
+              settings={settings}
+              voiceProfile={profile}
+              saveDraft={saveDraft}
+            />
+          )}
           {panel === 'history' && (
             <HistoryPanel drafts={drafts} onLoad={loadFromHistory} />
           )}
@@ -263,6 +274,7 @@ export default function AppShell() {
               clearProfile={handleClearProfile}
               deleteHistory={deleteHistory}
               restartTour={restartTour}
+              uid={user?.uid}
             />
           )}
         </div>
@@ -286,6 +298,10 @@ export default function AppShell() {
           setActiveStep(null);
           setIsSidebarOpen(false);
         }}
+      />
+      <CommandBar 
+        settings={settings}
+        voiceProfile={profile}
       />
     </div>
   );

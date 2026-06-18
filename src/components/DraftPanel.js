@@ -18,6 +18,96 @@ const ALL_VARIANTS = [
   { id: 'c', label: 'Variant C — Brief' },
 ];
 
+const PRESETS = [
+  { 
+    id: 'nudge', 
+    label: 'Gentle Nudge', 
+    icon: 'ti-bell',
+    formality: 40, warmth: 75, brevity: 65,
+    context: 'Politely follow up on the previous message without sounding pushy.'
+  },
+  { 
+    id: 'decline', 
+    label: 'Diplomatic No', 
+    icon: 'ti-circle-x',
+    formality: 65, warmth: 45, brevity: 55,
+    context: 'Politely but firmly decline the invitation, request, or proposal.'
+  },
+  { 
+    id: 'urgent', 
+    label: 'Urgent Ask', 
+    icon: 'ti-alert-octagon',
+    formality: 50, warmth: 55, brevity: 70,
+    context: 'Clearly request immediate action or a response by EOD.'
+  },
+  { 
+    id: 'accept', 
+    label: 'Warm Accept', 
+    icon: 'ti-circle-check',
+    formality: 35, warmth: 90, brevity: 60,
+    context: 'Enthusiastically accept and express excitement.'
+  },
+];
+
+const getPersonaMetrics = (p) => {
+  const defaults = {
+    default: { formality: 35, warmth: 72, brevity: 68 },
+    ceo: { formality: 80, warmth: 40, brevity: 55 },
+    casual: { formality: 20, warmth: 85, brevity: 75 },
+  };
+  return {
+    formality: p.formality !== undefined ? p.formality : (defaults[p.id]?.formality || 50),
+    warmth: p.warmth !== undefined ? p.warmth : (defaults[p.id]?.warmth || 50),
+    brevity: p.brevity !== undefined ? p.brevity : (defaults[p.id]?.brevity || 50),
+  };
+};
+
+const interpolateTraits = (x, y, personasList) => {
+  let totalWeight = 0;
+  let weights = [];
+  let exactMatch = null;
+
+  personasList.forEach((p) => {
+    const metrics = getPersonaMetrics(p);
+    const px = metrics.warmth;
+    const py = 100 - metrics.formality;
+    const dist = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
+
+    if (dist < 1.5) {
+      exactMatch = metrics;
+    }
+
+    const w = 1 / (dist ** 2 || 0.01);
+    weights.push({ metrics, w });
+    totalWeight += w;
+  });
+
+  if (exactMatch) {
+    return {
+      formality: Math.round(exactMatch.formality),
+      warmth: Math.round(exactMatch.warmth),
+      brevity: Math.round(exactMatch.brevity),
+    };
+  }
+
+  let formality = 0;
+  let warmth = 0;
+  let brevity = 0;
+
+  weights.forEach(item => {
+    const norm = item.w / totalWeight;
+    formality += norm * item.metrics.formality;
+    warmth += norm * item.metrics.warmth;
+    brevity += norm * item.metrics.brevity;
+  });
+
+  return {
+    formality: Math.round(Math.min(100, Math.max(0, formality))),
+    warmth: Math.round(Math.min(100, Math.max(0, warmth))),
+    brevity: Math.round(Math.min(100, Math.max(0, brevity))),
+  };
+};
+
 function calculateForecast(text, variantId) {
   if (!text || text.trim().length < 5) return null;
   const words = text.split(/\s+/).length;
@@ -148,9 +238,55 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
   // Advanced Tone Overrides State
   const [showSliders, setShowSliders] = useState(false);
+  const [overrideMode, setOverrideMode] = useState('manual'); // 'manual' or 'blend'
+  const svgRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const [formalityOverride, setFormalityOverride] = useState(50);
   const [warmthOverride, setWarmthOverride] = useState(50);
   const [brevityOverride, setBrevityOverride] = useState(50);
+
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    updatePositionFromEvent(e);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    updatePositionFromEvent(e);
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+  };
+
+  const updatePositionFromEvent = (e) => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    
+    // Get client coordinates depending on mouse or touch
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const xRaw = ((clientX - rect.left) / rect.width) * 100;
+    const yRaw = ((clientY - rect.top) / rect.height) * 100;
+    
+    const x = Math.min(100, Math.max(0, xRaw));
+    const y = Math.min(100, Math.max(0, yRaw));
+
+    // Interpolate metrics
+    const list = settings?.personas || [
+      { id: 'default', name: 'Standard' },
+      { id: 'ceo', name: 'Executive' },
+      { id: 'casual', name: 'Friend / Casual' },
+    ];
+    
+    const traits = interpolateTraits(x, y, list);
+    
+    setFormalityOverride(traits.formality);
+    setWarmthOverride(traits.warmth);
+    setBrevityOverride(traits.brevity);
+  };
 
   // Sync sliders with voice profile when it loads
   useEffect(() => {
@@ -586,6 +722,28 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
             />
           </div>
 
+          {/* Tone Preset Macros */}
+          <div className={styles.presetsRow}>
+            {PRESETS.map(p => (
+              <button
+                key={p.id}
+                type="button"
+                className={styles.presetChip}
+                onClick={() => {
+                  setFormalityOverride(p.formality);
+                  setWarmthOverride(p.warmth);
+                  setBrevityOverride(p.brevity);
+                  setContext(p.context);
+                  setShowSliders(true);
+                  setOverrideMode('manual'); // Reset blending mode to manual
+                }}
+              >
+                <i className={`ti ${p.icon}`} aria-hidden="true"></i>
+                <span>{p.label}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Style Overrides Collapsible */}
           <div id="tour-overrides" className={styles.collapsibleSection} style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
             <button 
@@ -598,50 +756,125 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
             </button>
             {showSliders && (
               <div className={styles.slidersWrapper}>
-                <div className={styles.slidersGrid}>
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Formality</span>
-                      <span>{formalityOverride}%</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={formalityOverride}
-                      onChange={e => setFormalityOverride(parseInt(e.target.value))}
-                      className={styles.sliderInput}
-                    />
+                <div className={styles.slidersControls}>
+                  {/* Override Modes Segment Control */}
+                  <div className={styles.overrideModes}>
+                    <button 
+                      type="button" 
+                      className={`${styles.overrideModeTab} ${overrideMode === 'manual' ? styles.overrideModeTabActive : ''}`}
+                      onClick={() => setOverrideMode('manual')}
+                    >
+                      Manual Sliders
+                    </button>
+                    <button 
+                      type="button" 
+                      className={`${styles.overrideModeTab} ${overrideMode === 'blend' ? styles.overrideModeTabActive : ''}`}
+                      onClick={() => setOverrideMode('blend')}
+                    >
+                      Persona Blender
+                    </button>
                   </div>
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Warmth</span>
-                      <span>{warmthOverride}%</span>
+
+                  {overrideMode === 'manual' ? (
+                    <div className={styles.slidersGrid}>
+                      <div className={styles.sliderGroup}>
+                        <div className={styles.sliderLabelRow}>
+                          <span>Formality</span>
+                          <span>{formalityOverride}%</span>
+                        </div>
+                        <input 
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={formalityOverride}
+                          onChange={e => setFormalityOverride(parseInt(e.target.value))}
+                          className={styles.sliderInput}
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <div className={styles.sliderLabelRow}>
+                          <span>Warmth</span>
+                          <span>{warmthOverride}%</span>
+                        </div>
+                        <input 
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={warmthOverride}
+                          onChange={e => setWarmthOverride(parseInt(e.target.value))}
+                          className={styles.sliderInput}
+                        />
+                      </div>
+                      <div className={styles.sliderGroup}>
+                        <div className={styles.sliderLabelRow}>
+                          <span>Brevity (Length)</span>
+                          <span>{brevityOverride}%</span>
+                        </div>
+                        <input 
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={brevityOverride}
+                          onChange={e => setBrevityOverride(parseInt(e.target.value))}
+                          className={styles.sliderInput}
+                        />
+                      </div>
                     </div>
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={warmthOverride}
-                      onChange={e => setWarmthOverride(parseInt(e.target.value))}
-                      className={styles.sliderInput}
-                    />
-                  </div>
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Brevity (Length)</span>
-                      <span>{brevityOverride}%</span>
+                  ) : (
+                    <div className={styles.blenderContainer}>
+                      <div className={styles.blenderHeader}>
+                        <span>Drag cursor to blend writing alter-egos</span>
+                        <span className={styles.blenderCoords}>Formality: {formalityOverride}% · Warmth: {warmthOverride}%</span>
+                      </div>
+                      <div className={styles.blenderCanvasWrapper}>
+                        <svg
+                          ref={svgRef}
+                          className={styles.blenderSvg}
+                          viewBox="0 0 100 100"
+                          onMouseDown={handlePointerDown}
+                          onMouseMove={handlePointerMove}
+                          onMouseUp={handlePointerUp}
+                          onMouseLeave={handlePointerUp}
+                          onTouchStart={handlePointerDown}
+                          onTouchMove={handlePointerMove}
+                          onTouchEnd={handlePointerUp}
+                        >
+                          {/* Grid Axes lines */}
+                          <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" strokeDasharray="2" />
+                          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="0.5" strokeDasharray="2" />
+                          
+                          {/* Axes Labels */}
+                          <text x="50" y="4.5" textAnchor="middle" fontSize="3.2" fill="rgba(255,255,255,0.25)" fontWeight="700">FORMAL</text>
+                          <text x="50" y="98.5" textAnchor="middle" fontSize="3.2" fill="rgba(255,255,255,0.25)" fontWeight="700">CASUAL</text>
+                          <text x="1.5" y="51.5" textAnchor="start" fontSize="3.2" fill="rgba(255,255,255,0.25)" fontWeight="700">COOL</text>
+                          <text x="98.5" y="51.5" textAnchor="end" fontSize="3.2" fill="rgba(255,255,255,0.25)" fontWeight="700">WARM</text>
+  
+                          {/* Plot Persona Nodes */}
+                          {(settings?.personas || [
+                            { id: 'default', name: 'Standard' },
+                            { id: 'ceo', name: 'Executive' },
+                            { id: 'casual', name: 'Friend / Casual' },
+                          ]).map(p => {
+                            const m = getPersonaMetrics(p);
+                            const px = m.warmth;
+                            const py = 100 - m.formality;
+                            return (
+                              <g key={p.id}>
+                                <circle cx={px} cy={py} r="2.5" fill="rgba(127, 119, 221, 0.4)" stroke="var(--purple-light)" strokeWidth="0.6" />
+                                <text x={px} y={py - 4.5} textAnchor="middle" fontSize="3" fill="rgba(255, 255, 255, 0.85)" fontWeight="600">{p.name}</text>
+                              </g>
+                            );
+                          })}
+  
+                          {/* Interactive Selector Crosshair */}
+                          <circle cx={warmthOverride} cy={100 - formalityOverride} r="4" fill="rgba(175, 169, 236, 0.2)" stroke="var(--purple-light)" strokeWidth="1" />
+                          <circle cx={warmthOverride} cy={100 - formalityOverride} r="1.2" fill="var(--purple-light)" />
+                        </svg>
+                      </div>
                     </div>
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={brevityOverride}
-                      onChange={e => setBrevityOverride(parseInt(e.target.value))}
-                      className={styles.sliderInput}
-                    />
-                  </div>
+                  )}
                 </div>
+
                 <VoiceRadar 
                   formality={formalityOverride}
                   warmth={warmthOverride}
