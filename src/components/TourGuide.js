@@ -184,7 +184,7 @@ export default function TourGuide({ userId, onComplete, onStepChange }) {
   return (
     <div className={styles.container}>
       {/* Dimmed Backdrop */}
-      <div className={styles.backdrop} onClick={handleClose} />
+      <div className={styles.backdrop} />
 
       {/* Popover Bubble */}
       <div className={styles.popover} style={popoverStyle} role="dialog" aria-modal="true">

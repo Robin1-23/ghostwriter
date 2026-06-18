@@ -435,3 +435,7 @@
     padding: 16px;
   }
 }
+
+.sidebarElevated {
+  z-index: 1001 !important;
+}

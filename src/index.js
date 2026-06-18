@@ -18,3 +18,9 @@ if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       });
   });
 }
+
+// Suppress the automatic browser PWA install banner/popup
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window.deferredInstallPrompt = e; // Stash it globally in case we want to trigger it from an in-app button
+});

@@ -19,6 +19,28 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
   const [deleting, setDeleting] = useState(false);
   const [newPersonaName, setNewPersonaName] = useState('');
 
+  const [canInstall, setCanInstall] = React.useState(!!window.deferredInstallPrompt);
+
+  React.useEffect(() => {
+    const handler = () => setCanInstall(true);
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = () => {
+    const promptEvent = window.deferredInstallPrompt;
+    if (!promptEvent) return;
+    
+    promptEvent.prompt();
+    promptEvent.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') {
+        console.log('User accepted the PWA install prompt');
+      }
+      window.deferredInstallPrompt = null;
+      setCanInstall(false);
+    });
+  };
+
   const handleAddPersona = async (e) => {
     e.preventDefault();
     if (!newPersonaName.trim()) return;
@@ -249,7 +271,7 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Help & onboarding</h3>
           <p className={styles.cardDesc}>Need a quick guide on how Ghost works?</p>
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button
               type="button"
               className={styles.restartTourBtn}
@@ -257,6 +279,17 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
             >
               <i className="ti ti-help" style={{ marginRight: 6 }}></i> Restart onboarding tour
             </button>
+
+            {canInstall && (
+              <button
+                type="button"
+                className={styles.restartTourBtn}
+                onClick={handleInstallApp}
+                style={{ background: 'rgba(127, 119, 221, 0.1)', borderColor: 'rgba(127, 119, 221, 0.35)', color: 'var(--purple-light)' }}
+              >
+                <i className="ti ti-download" style={{ marginRight: 6 }}></i> Install Ghost App
+              </button>
+            )}
           </div>
         </div>
       </div>

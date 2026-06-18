@@ -40,6 +40,7 @@ export default function AppShell() {
   const [tone, setTone] = useState('auto');
   const [preloadMsg, setPreloadMsg] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeStep, setActiveStep] = useState(null);
 
   // Load user settings
   const { settings, saveSettings } = useUserSettings(user?.uid);
@@ -114,7 +115,7 @@ export default function AppShell() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarVisible : ''}`}>
+      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarVisible : ''} ${(activeStep === 1 || activeStep === 2 || activeStep === 4) ? styles.sidebarElevated : ''}`}>
         <div className={styles.logo}>
           <span className={styles.logoDot}></span>
           Ghost
@@ -270,6 +271,7 @@ export default function AppShell() {
         userId={user?.uid}
         key={runTourKey} 
         onStepChange={(step) => {
+          setActiveStep(step);
           const isMobile = window.innerWidth <= 768;
           if (isMobile) {
             // Auto-open/close the mobile sidebar depending on the target element
@@ -281,6 +283,7 @@ export default function AppShell() {
           }
         }}
         onComplete={() => {
+          setActiveStep(null);
           setIsSidebarOpen(false);
         }}
       />
