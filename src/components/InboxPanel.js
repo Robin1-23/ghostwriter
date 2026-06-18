@@ -125,6 +125,16 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Helper to extract detailed error message from response
+  const getErrorMessage = async (res) => {
+    try {
+      const data = await res.json();
+      return data.error?.message || `HTTP Status ${res.status}: ${res.statusText || 'Unknown error'}`;
+    } catch (e) {
+      return `HTTP Status ${res.status}: ${res.statusText || 'Unknown error'}`;
+    }
+  };
+
   // Handle Unauthorized Session Expiration
   const handleUnauthorized = () => {
     if (user?.uid) {
@@ -139,7 +149,10 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
   const fetchGmailMessages = async (token) => {
     setIsSyncing(true);
     try {
-      const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=8', {
+      const apiKey = auth.app?.options?.apiKey || '';
+      const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=8${apiKey ? `&key=${apiKey}` : ''}`;
+      
+      const listRes = await fetch(listUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -151,7 +164,8 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
       }
       
       if (!listRes.ok) {
-        throw new Error(`Failed to fetch message list: ${listRes.statusText}`);
+        const errorMsg = await getErrorMessage(listRes);
+        throw new Error(errorMsg);
       }
       
       const listData = await listRes.json();
@@ -165,14 +179,16 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
       // Fetch details for each message in parallel
       const details = await Promise.all(
         listData.messages.map(async (msg) => {
-          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`, {
+          const detailUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}${apiKey ? `?key=${apiKey}` : ''}`;
+          const detailRes = await fetch(detailUrl, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           });
           
           if (!detailRes.ok) {
-            throw new Error(`Failed to fetch message details for ${msg.id}`);
+            const errorMsg = await getErrorMessage(detailRes);
+            throw new Error(`Message ${msg.id}: ${errorMsg}`);
           }
           
           return detailRes.json();
@@ -454,7 +470,10 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
           }
         };
 
-        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
+        const apiKey = auth.app?.options?.apiKey || '';
+        const draftUrl = `https://gmail.googleapis.com/gmail/v1/users/me/drafts${apiKey ? `?key=${apiKey}` : ''}`;
+        
+        const res = await fetch(draftUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -469,8 +488,8 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
         }
 
         if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `Failed to create draft: ${res.statusText}`);
+          const errorMsg = await getErrorMessage(res);
+          throw new Error(errorMsg);
         }
 
         showToast("Draft created in your Gmail!");

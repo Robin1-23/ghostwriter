@@ -70,7 +70,7 @@ export default function TourGuide({ userId, onComplete, onStepChange }) {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: 1000,
+        zIndex: 1020,
       });
       return;
     }
@@ -83,7 +83,7 @@ export default function TourGuide({ userId, onComplete, onStepChange }) {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: 1000,
+        zIndex: 1020,
       });
       return;
     }
@@ -134,7 +134,7 @@ export default function TourGuide({ userId, onComplete, onStepChange }) {
         top: `${top}px`,
         left: `${left}px`,
         transform,
-        zIndex: 1000,
+        zIndex: 1020,
       });
     };
 
