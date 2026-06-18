@@ -500,3 +500,200 @@
     gap: 16px;
   }
 }
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(29, 158, 117, 0.15);
+  border: 1px solid rgba(29, 158, 117, 0.3);
+  color: #38ef7d;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 9999;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toastError {
+  background: rgba(226, 75, 74, 0.15) !important;
+  border-color: rgba(226, 75, 74, 0.3) !important;
+  color: #ff5b5b !important;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Connect Screen */
+.connectContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+  width: 100%;
+}
+
+.connectCard {
+  background: radial-gradient(800px circle at 50% 50%, rgba(127, 119, 221, 0.08), transparent 70%), var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.connectIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(127, 119, 221, 0.1);
+  border: 1px solid rgba(127, 119, 221, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--purple-light);
+  box-shadow: 0 0 20px rgba(127, 119, 221, 0.2);
+}
+
+.connectTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.connectDesc {
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+}
+
+.connectBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--purple-bg);
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  width: 100%;
+}
+
+.connectBtn:hover:not(:disabled) {
+  background: var(--purple-light);
+  box-shadow: 0 0 25px rgba(127, 119, 221, 0.4);
+  transform: translateY(-1px);
+}
+
+.connectBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.privacyNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: left;
+  line-height: 1.4;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 16px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.privacyNote i {
+  font-size: 16px;
+  color: #38ef7d;
+  flex-shrink: 0;
+}
+
+/* Banner Actions & Disconnect */
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.disconnectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(226, 75, 74, 0.06);
+  border: 1px solid rgba(226, 75, 74, 0.15);
+  border-radius: var(--radius-sm);
+  color: #ff5b5b;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.disconnectBtn:hover {
+  background: rgba(226, 75, 74, 0.15);
+  border-color: rgba(226, 75, 74, 0.35);
+  color: #ff5b5b;
+}
+
+/* Empty Inbox State */
+.emptyInboxState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  text-align: center;
+}
+
+.emptyInboxState i {
+  font-size: 36px;
+  color: #38ef7d;
+  filter: drop-shadow(0 0 10px rgba(56, 239, 125, 0.25));
+}
+
