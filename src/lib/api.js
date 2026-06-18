@@ -73,14 +73,26 @@ function cleanJson(raw) {
 }
 
 // Generate 3 reply variants with support for tone overrides
-export async function generateReplies({ message, context, platform, tone, chip, voiceTags, settings, overrides, threadContext, language }) {
+export async function generateReplies({ mode = 'reply', message, context, platform, tone, chip, voiceTags, settings, overrides, threadContext, language }) {
+  const isCompose = mode === 'compose';
+
   const platformInstr = {
-    email: 'Format as a short email reply. No subject line needed.',
-    whatsapp: 'Format as a WhatsApp message — casual, conversational, no subject line.',
-    slack: 'Format as a Slack message — concise, professional-casual. Use line breaks, not paragraphs.',
-    x: 'Format as an X/Twitter reply — punchy, max 260 characters.',
-    linkedin: 'Format as a LinkedIn message — professional but personable.',
-  }[platform] || 'Format as a short reply.';
+    email: isCompose
+      ? 'Format as a full new email. For each variant, include a suitable "subject" line.'
+      : 'Format as a short email reply. No subject line needed.',
+    whatsapp: isCompose
+      ? 'Format as a new WhatsApp message — casual, conversational, no subject line.'
+      : 'Format as a WhatsApp message reply — casual, conversational, no subject line.',
+    slack: isCompose
+      ? 'Format as a new Slack message — concise, professional-casual. Use line breaks, not paragraphs.'
+      : 'Format as a Slack message reply — concise, professional-casual. Use line breaks, not paragraphs.',
+    x: isCompose
+      ? 'Format as a new X/Twitter post — punchy, max 260 characters.'
+      : 'Format as an X/Twitter reply — punchy, max 260 characters.',
+    linkedin: isCompose
+      ? 'Format as a new LinkedIn outreach/message — professional but personable.'
+      : 'Format as a LinkedIn reply message — professional but personable.',
+  }[platform] || (isCompose ? 'Format as a short new message.' : 'Format as a short reply.');
 
   const useAutoTone = tone === 'auto' || (settings?.alwaysMatchTone);
   
@@ -115,7 +127,7 @@ export async function generateReplies({ message, context, platform, tone, chip, 
 - Brevity Level: ${overrides.brevity}/100 (higher means extremely short, 1 sentence max; lower means descriptive, longer detail).`;
   }
 
-  const system = `You are an AI ghostwriter. Write replies that sound like the user, not like an assistant.
+  const system = `You are an AI ghostwriter. Write ${isCompose ? 'new messages' : 'replies'} that sound like the user, not like an assistant.
 ${toneInstr}
 ${platformInstr}
 ${chipInstr}
@@ -125,13 +137,22 @@ ${langInstr}
 ${context ? `Extra context from user: ${context}` : ''}
 
 Return ONLY valid JSON (no markdown wrapping, no backticks, no markdown blocks) with this format:
-{
-  "a": {"text": "main reply — most natural", "perception": "Concise 2-3 word description of the emotional/tone perception, e.g. 'Warm & friendly' or 'Polite & direct'"},
+${isCompose && platform === 'email'
+  ? `{
+  "a": {"subject": "Email subject line", "text": "main email body — most natural", "perception": "Concise 2-3 word description of the emotional/tone perception, e.g. 'Warm & friendly' or 'Polite & direct'"},
+  "b": {"subject": "Email subject line", "text": "casual/relaxed email body", "perception": "Concise description"},
+  "c": {"subject": "Email subject line", "text": "brief email body", "perception": "Concise description"}
+}`
+  : `{
+  "a": {"text": "main message text", "perception": "Concise 2-3 word description of the emotional/tone perception, e.g. 'Warm & friendly' or 'Polite & direct'"},
   "b": {"text": "casual/relaxed version", "perception": "Concise description"},
-  "c": {"text": "very brief 1-2 sentence version", "perception": "Concise description"}
+  "c": {"text": "very brief version", "perception": "Concise description"}
+}`
 }`;
 
-  const userMsg = `${threadContext ? `Previous thread history for context:\n${threadContext}\n\n` : ''}Message I received:\n\n${message}`;
+  const userMsg = isCompose
+    ? `Write a new message about the following topic/prompt:\n\n${message}`
+    : `${threadContext ? `Previous thread history for context:\n${threadContext}\n\n` : ''}Message I received:\n\n${message}`;
 
   const raw = await callOpenAI(system, userMsg, 1000, true, settings);
   return JSON.parse(cleanJson(raw));

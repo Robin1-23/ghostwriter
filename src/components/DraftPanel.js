@@ -115,6 +115,7 @@ function calculateHumanScore(text) {
 }
 
 export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, saveDraft, updateDraft, preloadMsg, onPreloadConsumed, settings }) {
+  const [mode, setMode] = useState('reply'); // 'reply' or 'compose'
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('input');
   const [context, setContext] = useState('');
@@ -126,6 +127,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
   const [showThread, setShowThread] = useState(false);
   const [language, setLanguage] = useState('English');
   const [drafts, setDrafts] = useState({ a: '', b: '', c: '' });
+  const [subjects, setSubjects] = useState({ a: '', b: '', c: '' });
   const [originalDrafts, setOriginalDrafts] = useState({ a: '', b: '', c: '' });
   const [perceptions, setPerceptions] = useState({ a: '', b: '', c: '' });
   const [intents, setIntents] = useState([]);
@@ -158,6 +160,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     if (preloadMsg) {
       setMessage(preloadMsg.receivedMsg || '');
       setActiveDocId(preloadMsg.id || null);
+      setMode(preloadMsg.mode || 'reply');
 
       if (preloadMsg.drafts) {
         setDrafts(preloadMsg.drafts);
@@ -165,6 +168,12 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
       } else {
         setDrafts({ a: preloadMsg.reply || '', b: '', c: '' });
         setOriginalDrafts({ a: preloadMsg.reply || '', b: '', c: '' });
+      }
+
+      if (preloadMsg.subjects) {
+        setSubjects(preloadMsg.subjects);
+      } else {
+        setSubjects({ a: '', b: '', c: '' });
       }
 
       if (preloadMsg.perceptions) {
@@ -206,7 +215,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
   // Debounced auto-suggestions for intents
   useEffect(() => {
-    if (!message.trim() || message.trim().length < 15) {
+    if (mode !== 'reply' || !message.trim() || message.trim().length < 15) {
       setIntents([]);
       return;
     }
@@ -221,7 +230,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
       setLoadingIntents(false);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [message]);
+  }, [message, mode]);
 
   const handleGenerate = async () => {
     if (!message.trim() || loading) return;
@@ -229,6 +238,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     setError('');
     setDrafts({ a: '', b: '', c: '' });
     setOriginalDrafts({ a: '', b: '', c: '' });
+    setSubjects({ a: '', b: '', c: '' });
     setPerceptions({ a: '', b: '', c: '' });
     setHasSavedProfile(false);
     setActive('a');
@@ -236,6 +246,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     setActiveTab('output'); // Auto-switch to response tab on mobile
     try {
       const result = await generateReplies({
+        mode,
         message,
         context,
         platform,
@@ -257,6 +268,11 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
         b: result.b?.text || '',
         c: result.c?.text || '',
       };
+      const cleanSubjects = {
+        a: result.a?.subject || '',
+        b: result.b?.subject || '',
+        c: result.c?.subject || '',
+      };
       const cleanPerceptions = {
         a: result.a?.perception || 'Polite & direct',
         b: result.b?.perception || 'Casual & warm',
@@ -265,10 +281,12 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
       setDrafts(cleanResult);
       setOriginalDrafts(cleanResult);
+      setSubjects(cleanSubjects);
       setPerceptions(cleanPerceptions);
 
       if (settings?.saveDraftHistory !== false) {
         const id = await saveDraft?.({
+          mode,
           receivedMsg: message,
           reply: cleanResult.a,
           platform,
@@ -279,6 +297,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
           language,
           drafts: cleanResult,
           originalDrafts: cleanResult,
+          subjects: cleanSubjects,
           perceptions: cleanPerceptions,
           active: 'a',
           overrides: showSliders ? {
@@ -447,34 +466,71 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
       <div className={`${styles.inputCol} ${activeTab === 'input' ? styles.tabVisible : styles.tabHidden}`}>
         <div className={styles.sectionLabel}>Drafting Workshop</div>
         <div className={styles.inputCard}>
-          {/* Thread Context Section */}
-          <div className={styles.collapsibleSection}>
-            <button 
+          {/* Mode Selector Segment Control */}
+          <div className={styles.modeToggleRow}>
+            <button
               type="button"
-              className={styles.sectionToggle}
-              onClick={() => setShowThread(!showThread)}
+              className={`${styles.modeTab} ${mode === 'reply' ? styles.modeTabActive : ''}`}
+              onClick={() => {
+                setMode('reply');
+                setMessage('');
+                setDrafts({ a: '', b: '', c: '' });
+                setSubjects({ a: '', b: '', c: '' });
+              }}
             >
-              <span>Conversational History</span>
-              <i className={`ti ${showThread ? 'ti-chevron-up' : 'ti-chevron-down'}`}></i>
+              <i className="ti ti-arrow-back-up" aria-hidden="true"></i>
+              Reply to message
             </button>
-            {showThread && (
-              <textarea
-                className={styles.threadTextarea}
-                placeholder="Paste previous back-and-forth messages here to give Ghost conversation history context…"
-                value={threadContext}
-                onChange={e => setThreadContext(e.target.value)}
-                rows={3}
-              />
-            )}
+            <button
+              type="button"
+              className={`${styles.modeTab} ${mode === 'compose' ? styles.modeTabActive : ''}`}
+              onClick={() => {
+                setMode('compose');
+                setMessage('');
+                setDrafts({ a: '', b: '', c: '' });
+                setSubjects({ a: '', b: '', c: '' });
+              }}
+            >
+              <i className="ti ti-edit" aria-hidden="true"></i>
+              Write from scratch
+            </button>
           </div>
 
-          {/* Main Message Received */}
+          {/* Thread Context Section (Replies only) */}
+          {mode === 'reply' && (
+            <div className={styles.collapsibleSection}>
+              <button 
+                type="button"
+                className={styles.sectionToggle}
+                onClick={() => setShowThread(!showThread)}
+              >
+                <span>Conversational History</span>
+                <i className={`ti ${showThread ? 'ti-chevron-up' : 'ti-chevron-down'}`}></i>
+              </button>
+              {showThread && (
+                <textarea
+                  className={styles.threadTextarea}
+                  placeholder="Paste previous back-and-forth messages here to give Ghost conversation history context…"
+                  value={threadContext}
+                  onChange={e => setThreadContext(e.target.value)}
+                  rows={3}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Main Input Prompt */}
           <div className={styles.mainInputSection}>
-            <label className={styles.innerLabel}>Message received</label>
+            <label className={styles.innerLabel}>
+              {mode === 'compose' ? 'Describe the message you want to write' : 'Message received'}
+            </label>
             <textarea
               ref={textareaRef}
               className={styles.mainTextarea}
-              placeholder="Paste the message you need to reply to…"
+              placeholder={mode === 'compose'
+                ? 'What do you want this message to be about? (e.g. "Request Prince to send the Q3 design deck by Friday")'
+                : 'Paste the message you need to reply to…'
+              }
               value={message}
               onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -482,8 +538,8 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
             />
           </div>
 
-          {/* Intent Suggestions Chips */}
-          {(intents.length > 0 || loadingIntents) && (
+          {/* Intent Suggestions Chips (Replies only) */}
+          {mode === 'reply' && (intents.length > 0 || loadingIntents) && (
             <div className={styles.intentSuggestionsSection}>
               <span className={styles.innerLabel} style={{ fontSize: 10 }}>Suggested Intent Replies:</span>
               <div className={styles.intentChipsRow}>
@@ -507,12 +563,17 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
             </div>
           )}
 
-          {/* How do you want to reply? */}
+          {/* Extra Context / Custom Guidance */}
           <div className={styles.contextSection}>
-            <label className={styles.innerLabel}>How do you want to reply? (Optional)</label>
+            <label className={styles.innerLabel}>
+              {mode === 'compose' ? 'Custom instructions (Optional)' : 'How do you want to reply? (Optional)'}
+            </label>
             <textarea
               className={styles.contextTextarea}
-              placeholder="Tell Ghost what you want to say — e.g. 'Reject the offer politely', 'Accept and ask for schedule'"
+              placeholder={mode === 'compose'
+                ? 'Any extra style instructions — e.g. "Keep it highly polite", "Use bullet points for the main details"'
+                : "Tell Ghost what you want to say — e.g. 'Reject the offer politely', 'Accept and ask for schedule'"
+              }
               value={context}
               onChange={e => setContext(e.target.value)}
               rows={2}
@@ -638,7 +699,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
       {/* Output column */}
       <div className={`${styles.outputCol} ${activeTab === 'output' ? styles.tabVisible : styles.tabHidden}`}>
-        <div className={styles.sectionLabel}>Your reply</div>
+        <div className={styles.sectionLabel}>{mode === 'compose' ? 'Your message' : 'Your reply'}</div>
         <div className={styles.draftCard}>
           <div className={styles.draftMeta}>
             <div className={styles.draftPlatform}>
@@ -655,6 +716,31 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
             <div className={styles.draftVariant}>Variant {active.toUpperCase()}</div>
           </div>
+
+          {mode === 'compose' && platform === 'email' && subjects[active] && (
+            <div className={styles.subjectWrapper}>
+              <div className={styles.subjectHeader}>
+                <span className={styles.subjectLabel}>Subject Line</span>
+                <button 
+                  type="button" 
+                  className={styles.subjectCopyBtn}
+                  onClick={() => {
+                    navigator.clipboard.writeText(subjects[active]).catch(() => {});
+                    alert("Subject line copied to clipboard!");
+                  }}
+                  title="Copy subject line"
+                >
+                  <i className="ti ti-copy"></i> Copy
+                </button>
+              </div>
+              <input 
+                type="text" 
+                readOnly 
+                value={subjects[active]} 
+                className={styles.subjectInput} 
+              />
+            </div>
+          )}
 
           <div className={styles.draftTextContainer}>
             {loading ? (
