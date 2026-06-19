@@ -149,8 +149,7 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
   const fetchGmailMessages = async (token) => {
     setIsSyncing(true);
     try {
-      const apiKey = auth.app?.options?.apiKey || '';
-      const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=8${apiKey ? `&key=${apiKey}` : ''}`;
+      const listUrl = 'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=8';
       
       const listRes = await fetch(listUrl, {
         headers: {
@@ -179,7 +178,7 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
       // Fetch details for each message in parallel
       const details = await Promise.all(
         listData.messages.map(async (msg) => {
-          const detailUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}${apiKey ? `?key=${apiKey}` : ''}`;
+          const detailUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`;
           const detailRes = await fetch(detailUrl, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -470,8 +469,7 @@ export default function InboxPanel({ settings, voiceProfile, saveDraft }) {
           }
         };
 
-        const apiKey = auth.app?.options?.apiKey || '';
-        const draftUrl = `https://gmail.googleapis.com/gmail/v1/users/me/drafts${apiKey ? `?key=${apiKey}` : ''}`;
+        const draftUrl = 'https://gmail.googleapis.com/gmail/v1/users/me/drafts';
         
         const res = await fetch(draftUrl, {
           method: 'POST',

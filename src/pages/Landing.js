@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import styles from './Landing.module.css';
@@ -40,7 +40,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className={styles.nav}>
         <div className={styles.navLogo}>
-          <span className={styles.logoDot}></span>
+          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} />
           Ghost
         </div>
         <div className={styles.navRight}>
@@ -185,8 +185,18 @@ export default function Landing() {
         </button>
       </section>
 
-      <footer className={styles.footer}>
-        <span className={styles.logoDot}></span> Ghost · Built with Elvyen
+      <footer className={styles.footer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} /> Ghost · Built with Elvyen
+        </div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Link to="/privacy" style={{ color: 'rgba(255, 255, 255, 0.35)', textDecoration: 'none', fontSize: '12px', fontWeight: '500' }}>
+            Privacy Policy
+          </Link>
+          <Link to="/terms" style={{ color: 'rgba(255, 255, 255, 0.35)', textDecoration: 'none', fontSize: '12px', fontWeight: '500' }}>
+            Terms of Service
+          </Link>
+        </div>
       </footer>
     </div>
   );

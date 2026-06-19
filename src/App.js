@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Landing from './pages/Landing';
 import AppShell from './pages/AppShell';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
 function RequireAuth({ children }) {
   const { user } = useAuth();
@@ -41,6 +43,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<RedirectIfAuth><Landing /></RedirectIfAuth>} />
           <Route path="/app" element={<RequireAuth><AppShell /></RequireAuth>} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
