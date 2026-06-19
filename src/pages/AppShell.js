@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useVoiceProfile, useDraftHistory, useUserSettings, clearAllProfiles } from '../hooks/useFirestore';
+import { useVoiceProfile, useDraftHistory, useUserSettings, clearAllProfiles, useKnowledgeVault } from '../hooks/useFirestore';
 import DraftPanel from '../components/DraftPanel';
 import VoicePanel from '../components/VoicePanel';
 import HistoryPanel from '../components/HistoryPanel';
 import SettingsPanel from '../components/SettingsPanel';
 import DashboardPanel from '../components/DashboardPanel';
 import InboxPanel from '../components/InboxPanel';
+import CampaignPanel from '../components/CampaignPanel';
+import SequencePanel from '../components/SequencePanel';
+import VaultPanel from '../components/VaultPanel';
 import CommandBar from '../components/CommandBar';
 import TourGuide from '../components/TourGuide';
 import styles from './AppShell.module.css';
@@ -23,6 +26,9 @@ const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'ti-layout-dashboard' },
   { id: 'draft', label: 'Draft reply', icon: 'ti-edit' },
   { id: 'inbox', label: 'Inbox Co-Pilot', icon: 'ti-mail-fast' },
+  { id: 'campaign', label: 'Campaign Composer', icon: 'ti-speakerphone' },
+  { id: 'sequence', label: 'Outreach Sequencer', icon: 'ti-list-check' },
+  { id: 'vault', label: 'Knowledge Vault', icon: 'ti-database' },
   { id: 'voice', label: 'My voice', icon: 'ti-microphone' },
   { id: 'history', label: 'History', icon: 'ti-history' },
   { id: 'settings', label: 'Settings', icon: 'ti-settings' },
@@ -32,6 +38,9 @@ const PANEL_META = {
   dashboard: { title: 'Dashboard', sub: 'Your writing performance and productivity metrics' },
   draft: { title: 'Draft a reply', sub: 'Paste the message you received — Ghost replies in your voice' },
   inbox: { title: 'Inbox Co-Pilot', sub: 'Background pre-drafted responses for your incoming emails' },
+  campaign: { title: 'Campaign Composer', sub: 'Generate adapted outreach drafts for multiple platforms side-by-side' },
+  sequence: { title: 'Outreach Sequencer', sub: 'Generate multi-stage automated outreach email sequences' },
+  vault: { title: 'Knowledge Vault', sub: 'Manage FAQ, bios, rates, and reference documents' },
   voice: { title: 'My voice', sub: 'Train Ghost with samples of your own writing' },
   history: { title: 'History', sub: 'Your recent ghostwritten drafts' },
   settings: { title: 'Settings', sub: 'Customize how Ghost writes for you' },
@@ -74,6 +83,9 @@ export default function AppShell() {
 
   // History & deletion
   const { drafts, saveDraft, updateDraft, deleteHistory } = useDraftHistory(user?.uid);
+
+  // Knowledge vault
+  const { vault, addVaultItem, deleteVaultItem } = useKnowledgeVault(user?.uid);
 
   const handleLogout = () => logout();
 
@@ -248,6 +260,26 @@ export default function AppShell() {
               updateDraft={updateDraft}
               preloadMsg={preloadMsg}
               onPreloadConsumed={() => setPreloadMsg(null)}
+              settings={settings}
+              vault={vault}
+            />
+          )}
+          {panel === 'vault' && (
+            <VaultPanel
+              vault={vault}
+              addVaultItem={addVaultItem}
+              deleteVaultItem={deleteVaultItem}
+            />
+          )}
+          {panel === 'campaign' && (
+            <CampaignPanel
+              voiceProfile={profile}
+              settings={settings}
+            />
+          )}
+          {panel === 'sequence' && (
+            <SequencePanel
+              voiceProfile={profile}
               settings={settings}
             />
           )}

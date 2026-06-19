@@ -72,8 +72,8 @@ function cleanJson(raw) {
   return raw.replace(/```json|```/g, '').trim();
 }
 
-// Generate 3 reply variants with support for tone overrides
-export async function generateReplies({ mode = 'reply', message, context, platform, tone, chip, voiceTags, settings, overrides, threadContext, language }) {
+// Generate 3 reply variants with support for tone overrides and vault context
+export async function generateReplies({ mode = 'reply', message, context, platform, tone, chip, voiceTags, settings, overrides, threadContext, language, vaultContext }) {
   const isCompose = mode === 'compose';
 
   const platformInstr = {
@@ -134,6 +134,7 @@ ${chipInstr}
 ${avoidFillerInstr}
 ${overrideInstr}
 ${langInstr}
+${vaultContext ? `Reference and incorporate these facts from the user's Knowledge Vault where relevant:\n${vaultContext}\n` : ''}
 ${context ? `Extra context from user: ${context}` : ''}
 
 Return ONLY valid JSON (no markdown wrapping, no backticks, no markdown blocks) with this format:
@@ -239,3 +240,62 @@ Ensure the keys match exactly and all values are of correct types. Return ONLY v
   const raw = await callOpenAI(system, `Here is my writing sample:\n\n${sampleText}`, 500, true, settings);
   return JSON.parse(cleanJson(raw));
 }
+
+// Modify an existing draft based on chat instructions (Co-Pilot Editor)
+export async function modifyDraft(originalText, instructions, settings) {
+  const system = `You are a professional editor. Modify the user's draft based strictly on their instructions while keeping the same general writing style and voice.
+Return ONLY the modified draft text without any explanations, conversational filler, or markdown wrapping.`;
+  return await callOpenAI(system, `Original Draft:\n${originalText}\n\nModification Instructions:\n${instructions}`, 1000, false, settings);
+}
+
+// Generate multi-channel campaigns side-by-side
+export async function generateCampaign({ overview, points, channels, voiceTags, settings }) {
+  const system = `You are an AI ghostwriter. Write outreach messages across multiple platforms based on the user's campaign overview and key points.
+Ensure the voice matches their style traits: ${voiceTags?.join(', ') || 'direct, warm, low-fluff'}.
+
+You must write a customized message for each of these requested channels: ${channels.join(', ')}.
+
+Format requirements per channel:
+- email: A professional email with a subject line.
+- slack: A concise, direct team message with clear action items.
+- linkedin: A professional yet personal networking outreach post.
+- whatsapp: A casual, friendly message with emojis.
+
+Return ONLY a valid JSON object (no markdown wrapping, no backticks, no markdown blocks) with this format (omit any channels not requested):
+{
+  "email": {"subject": "Email Subject", "body": "Email Body"},
+  "slack": {"body": "Slack Message"},
+  "linkedin": {"body": "LinkedIn Message"},
+  "whatsapp": {"body": "WhatsApp Message"}
+}`;
+  const raw = await callOpenAI(system, `Campaign Overview: ${overview}\nKey Points: ${points}`, 1200, true, settings);
+  return JSON.parse(cleanJson(raw));
+}
+
+// Generate multi-stage outreach sequences
+export async function generateSequence({ objective, audience, stagesCount, voiceTags, settings }) {
+  const system = `You are an AI outreach specialist. Generate a multi-stage outreach email sequence based on the user's objective and target audience.
+Ensure the voice matches their style traits: ${voiceTags?.join(', ') || 'direct, warm, low-fluff'}.
+
+Generate exactly ${stagesCount} stages:
+- Stage 1: Cold Outreach (Introduction & value prop)
+- Stage 2: Value Drop (Insightful follow-up, case study, or tip)
+- Stage 3: Soft Close (Gentle final check-in or simple call-to-action)
+(Adapt these based on the number of requested stages. Maximum 3 stages).
+
+Return ONLY a valid JSON object (no markdown wrapping, no backticks, no markdown blocks) with this format:
+{
+  "stages": [
+    {
+      "stage": 1,
+      "title": "Stage 1: Cold Outreach",
+      "subject": "Email Subject Line",
+      "body": "Email Body"
+    },
+    ...
+  ]
+}`;
+  const raw = await callOpenAI(system, `Objective: ${objective}\nTarget Audience: ${audience}`, 1500, true, settings);
+  return JSON.parse(cleanJson(raw));
+}
+

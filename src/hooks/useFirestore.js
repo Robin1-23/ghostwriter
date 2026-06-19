@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import {
   doc, getDoc, setDoc, collection,
   addDoc, query, orderBy, limit,
-  onSnapshot, serverTimestamp, getDocs, writeBatch
+  onSnapshot, serverTimestamp, getDocs, writeBatch,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -185,4 +186,42 @@ export function useDraftHistory(uid) {
   };
 
   return { drafts, saveDraft, updateDraft, deleteHistory, loading };
+}
+
+export function useKnowledgeVault(uid) {
+  const [vault, setVault] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!uid) { setLoading(false); return; }
+    setLoading(true);
+
+    const q = query(
+      collection(db, 'users', uid, 'vault'),
+      orderBy('createdAt', 'desc')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setVault(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    }, () => setLoading(false));
+    return unsub;
+  }, [uid]);
+
+  const addVaultItem = async (title, content) => {
+    if (!uid) return;
+    const docRef = await addDoc(collection(db, 'users', uid, 'vault'), {
+      title,
+      content,
+      createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+  };
+
+  const deleteVaultItem = async (docId) => {
+    if (!uid || !docId) return;
+    const ref = doc(db, 'users', uid, 'vault', docId);
+    await deleteDoc(ref);
+  };
+
+  return { vault, addVaultItem, deleteVaultItem, loading };
 }

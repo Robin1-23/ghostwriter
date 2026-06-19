@@ -25,6 +25,7 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
   const [sampleText, setSampleText] = useState('');
   const [fileName, setFileName] = useState('');
   const [cloning, setCloning] = useState(false);
+  const [isShared, setIsShared] = useState(false);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -89,7 +90,7 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
 
       const updatedPersonas = [
         ...(settings.personas || []),
-        { id, name: cleanName }
+        { id, name: cleanName, shared: !!isShared }
       ];
 
       // Save persona metadata to settings
@@ -108,6 +109,7 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
       setSampleText('');
       setFileName('');
       setShowCloner(false);
+      setIsShared(false);
       alert(`Persona "${cleanName}" added successfully!`);
     } catch (err) {
       console.error("Failed to add persona", err);
@@ -284,6 +286,7 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
                 <div className={styles.personaInfo}>
                   <i className="ti ti-user-pentagon" style={{ color: p.id === settings.selectedPersona ? 'var(--purple-light)' : 'rgba(255, 255, 255, 0.35)' }}></i>
                   <span className={p.id === settings.selectedPersona ? styles.personaActiveName : ''}>{p.name}</span>
+                  {p.shared && <span className={styles.teamBadge}><i className="ti ti-users"></i> Team</span>}
                   {p.id === settings.selectedPersona && <span className={styles.activeLabel}>Active</span>}
                 </div>
                 {p.id !== 'default' && (
@@ -324,6 +327,19 @@ export default function SettingsPanel({ settings, saveSettings, clearProfile, de
                   </>
                 )}
               </button>
+            </div>
+
+            <div className={styles.teamCheckboxRow}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={isShared}
+                  onChange={e => setIsShared(e.target.checked)}
+                  disabled={cloning}
+                  className={styles.checkboxInput}
+                />
+                <span>Share with Team (Brand Book Persona)</span>
+              </label>
             </div>
 
             <div className={styles.clonerToggleRow}>

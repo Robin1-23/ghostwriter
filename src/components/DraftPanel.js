@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateReplies, shortenDraft, elaborateDraft, suggestIntents, analyzeEdits } from '../lib/api';
+import { generateReplies, shortenDraft, elaborateDraft, suggestIntents, analyzeEdits, modifyDraft } from '../lib/api';
 import styles from './DraftPanel.module.css';
 
 const PLATFORM_ICONS = {
@@ -210,7 +210,7 @@ function calculateHumanScore(text) {
   return Math.max(45, Math.min(100, Math.round(100 - penalty)));
 }
 
-export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, saveDraft, updateDraft, preloadMsg, onPreloadConsumed, settings }) {
+export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, saveDraft, updateDraft, preloadMsg, onPreloadConsumed, settings, vault }) {
   const [mode, setMode] = useState('reply'); // 'reply' or 'compose'
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('input');
@@ -235,6 +235,43 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const textareaRef = useRef(null);
+
+  // Chat Co-Pilot editor state
+  const [copilotInstructions, setCopilotInstructions] = useState('');
+  const [modifying, setModifying] = useState(false);
+
+  const handleModifyDraft = async () => {
+    const current = drafts[active];
+    if (!current || !copilotInstructions.trim() || modifying) return;
+    setModifying(true);
+    setError('');
+    try {
+      const modified = await modifyDraft(current, copilotInstructions.trim(), settings);
+      setDrafts(prev => ({ ...prev, [active]: modified }));
+      setOriginalDrafts(prev => ({ ...prev, [active]: modified }));
+      setCopilotInstructions('');
+      setHasSavedProfile(false);
+
+      if (activeDocId) {
+        await updateDraft?.(activeDocId, {
+          drafts: { ...drafts, [active]: modified },
+          originalDrafts: { ...drafts, [active]: modified },
+          reply: modified,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      setError('Co-Pilot failed to refine draft. Please try again.');
+    }
+    setModifying(false);
+  };
+
+  const handleCopilotKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleModifyDraft();
+    }
+  };
 
   // Advanced Tone Overrides State
   const [showSliders, setShowSliders] = useState(false);
@@ -387,6 +424,10 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     setActiveDocId(null);
     setActiveTab('output'); // Auto-switch to response tab on mobile
     try {
+      const vaultContext = vault && vault.length > 0
+        ? vault.map(v => `[${v.title}]: ${v.content}`).join('\n\n')
+        : '';
+
       const result = await generateReplies({
         mode,
         message,
@@ -403,6 +444,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
         } : null,
         threadContext: showThread ? threadContext : '',
         language,
+        vaultContext,
       });
 
       const cleanResult = {
@@ -1000,6 +1042,36 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
               </div>
             )}
           </div>
+
+          {/* Chat Co-Pilot editor */}
+          {activeDraft && (
+            <div className={styles.copilotRow}>
+              <div className={styles.copilotInputWrapper}>
+                <i className="ti ti-wand" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  className={styles.copilotInput}
+                  placeholder="Ask Ghost to refine this draft (e.g. 'Make it more eager', 'Suggest Tuesday 2pm')..."
+                  value={copilotInstructions}
+                  onChange={e => setCopilotInstructions(e.target.value)}
+                  onKeyDown={handleCopilotKeyDown}
+                />
+                <button
+                  type="button"
+                  className={styles.copilotBtn}
+                  onClick={handleModifyDraft}
+                  disabled={!copilotInstructions.trim() || modifying}
+                  title="Modify draft"
+                >
+                  {modifying ? (
+                    <i className="ti ti-loader-2" style={{ animation: 'spin 1s linear infinite' }}></i>
+                  ) : (
+                    <i className="ti ti-send"></i>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {perceptions[active] && (
             <div className={styles.draftFeedbackRow}>
