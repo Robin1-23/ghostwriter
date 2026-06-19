@@ -152,6 +152,30 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Premium Power Features */}
+      <section className={styles.premium}>
+        <h2 className={styles.premiumH2}>Next-Level Workspace Upgrades</h2>
+        <p className={styles.premiumSub}>Evolve from simple replies to a complete, proactive writing alter-ego cockpit.</p>
+        <div className={styles.premiumGrid}>
+          {[
+            { icon: 'ti-database', title: 'Contextual Knowledge Vault', desc: 'Securely upload price sheets, FAQ notes, or bios. Ghost automatically retrieves facts to draft replies with absolute accuracy.' },
+            { icon: 'ti-speakerphone', title: 'Multi-Channel Composer', desc: 'Announce updates on all platforms. Enter your overview once to draft tailored messages for Email, Slack, LinkedIn, and WhatsApp side-by-side.' },
+            { icon: 'ti-list-check', title: 'Outreach Sequencer', desc: 'Create progressive multi-stage cold outreach email campaigns that build warm rapport and schedule meetings automatically.' },
+            { icon: 'ti-wand', title: 'Interactive Chat Co-Pilot', desc: 'Chat directly with your writing persona to edit your drafts in real-time. Say "Suggest Wednesday afternoon at 2pm" to update copies instantly.' },
+            { icon: 'ti-users', title: 'Team Brand Book', desc: 'Publish and sync custom brand personas with your organization. Keep support, sales, and executives writing in one unified voice.' },
+            { icon: 'ti-trending-up', title: 'Vibe & Risk Forecasting', desc: 'Evaluate recipient sentiment outcome ratings, relationship style vibes, and passive-aggressive writing risks before sending.' },
+          ].map(p => (
+            <div key={p.title} className={styles.premiumCard}>
+              <div className={styles.premiumIcon}>
+                <i className={`ti ${p.icon}`} aria-hidden="true"></i>
+              </div>
+              <h3>{p.title}</h3>
+              <p>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Social proof */}
       <section className={styles.proof}>
         <h2 className={styles.proofH2}>The burnout is real. So is the fix.</h2>
