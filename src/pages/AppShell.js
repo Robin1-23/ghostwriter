@@ -121,7 +121,7 @@ export default function AppShell() {
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarVisible : ''} ${(activeStep === 1 || activeStep === 2 || activeStep === 4) ? styles.sidebarElevated : ''}`}>
         <div className={styles.logo}>
-          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} />
+          <span className={styles.logoDot}></span>
           Ghost
           {/* Close button for mobile */}
           <button className={styles.closeSidebarBtn} onClick={() => setIsSidebarOpen(false)} title="Close menu">

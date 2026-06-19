@@ -40,7 +40,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className={styles.nav}>
         <div className={styles.navLogo}>
-          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} />
+          <span className={styles.logoDot}></span>
           Ghost
         </div>
         <div className={styles.navRight}>
@@ -187,7 +187,7 @@ export default function Landing() {
 
       <footer className={styles.footer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} /> Ghost · Built with Elvyen
+          <span className={styles.logoDot}></span> Ghost · Built with Elvyen
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <Link to="/privacy" style={{ color: 'rgba(255, 255, 255, 0.35)', textDecoration: 'none', fontSize: '12px', fontWeight: '500' }}>

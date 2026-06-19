@@ -7,7 +7,7 @@ export default function Privacy() {
     <div className={styles.container}>
       <header className={styles.header}>
         <Link to="/" className={styles.logo}>
-          <img src="/logo.png" alt="Ghost Logo" className={styles.logoImg} />
+          <span className={styles.logoDot}></span>
           Ghost
         </Link>
         <Link to="/" className={styles.backBtn}>

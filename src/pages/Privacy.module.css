@@ -29,11 +29,12 @@
   text-decoration: none;
 }
 
-.logoImg {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  box-shadow: 0 0 10px rgba(127, 119, 221, 0.4);
+.logoDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--purple, #7F77DD);
+  box-shadow: 0 0 10px var(--purple, #7F77DD);
 }
 
 .backBtn {
