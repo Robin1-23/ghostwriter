@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { generateReplies, shortenDraft, elaborateDraft, suggestIntents, analyzeEdits, modifyDraft } from '../lib/api';
 import styles from './DraftPanel.module.css';
 
@@ -48,6 +49,239 @@ const PRESETS = [
     context: 'Enthusiastically accept and express excitement.'
   },
 ];
+
+const TONE_RULES = [
+  {
+    phrase: "hope this email finds you well",
+    type: "robotic",
+    label: "AI Cliché / Greeting",
+    desc: "Overused generic corporate greeting that sounds robotic.",
+    alternatives: ["How are you doing?", "Hope your week is going great!", "(Omit greeting)"]
+  },
+  {
+    phrase: "delighted to connect",
+    type: "robotic",
+    label: "AI Greeting Cliché",
+    desc: "Common AI email opener; sounds artificial.",
+    alternatives: ["Great connecting with you", "Nice to meet you", "Thanks for reaching out"]
+  },
+  {
+    phrase: "delighted to assist",
+    type: "robotic",
+    label: "Chatbot Phrasing",
+    desc: "Sounds like a customer service virtual assistant.",
+    alternatives: ["Happy to help with this", "Glad to help", "Sure thing!"]
+  },
+  {
+    phrase: "delve",
+    type: "robotic",
+    label: "AI Buzzword",
+    desc: "Highly overused AI term; rarely used by humans.",
+    alternatives: ["look into", "explore", "examine", "go deep into"]
+  },
+  {
+    phrase: "tapestry",
+    type: "robotic",
+    label: "AI Buzzword",
+    desc: "Highly overused AI metaphor.",
+    alternatives: ["mix", "combination", "network", "ecosystem"]
+  },
+  {
+    phrase: "testament",
+    type: "robotic",
+    label: "AI Cliché",
+    desc: "Overused word in LLM output representing proof.",
+    alternatives: ["proof", "shows", "demonstrates"]
+  },
+  {
+    phrase: "furthermore",
+    type: "robotic",
+    label: "Formal AI Transition",
+    desc: "Too academic or formal for standard chats/emails.",
+    alternatives: ["Also", "In addition", "Plus"]
+  },
+  {
+    phrase: "moreover",
+    type: "robotic",
+    label: "Formal AI Transition",
+    desc: "Too academic/formal for general communication.",
+    alternatives: ["Also", "Additionally"]
+  },
+  {
+    phrase: "please do not hesitate",
+    type: "robotic",
+    label: "Robotic Cliché",
+    desc: "Passive corporate boilerplate.",
+    alternatives: ["Let me know", "Reach out anytime", "Feel free to ask"]
+  },
+  {
+    phrase: "per my last",
+    type: "stiff",
+    label: "Passive-Aggressive Trigger",
+    desc: "Usually sounds highly irritated, defensive, or accusatory.",
+    alternatives: ["As mentioned earlier,", "Just to recap,", "Like we discussed,"]
+  },
+  {
+    phrase: "as stated",
+    type: "stiff",
+    label: "Stiff / Impatient",
+    desc: "Can sound impatient or defensive.",
+    alternatives: ["As mentioned,", "Like we discussed,"]
+  },
+  {
+    phrase: "obviously",
+    type: "stiff",
+    label: "Condescending Word",
+    desc: "Can sound dismissive or condescending.",
+    alternatives: ["Indeed", "Naturally", "(Omit word)"]
+  },
+  {
+    phrase: "actually",
+    type: "stiff",
+    label: "Defensive Trigger",
+    desc: "Often sounds corrective, pedantic, or defensive.",
+    alternatives: ["Indeed,", "In fact,", "(Omit word)"]
+  },
+  {
+    phrase: "clearly",
+    type: "stiff",
+    label: "Stiff / Dismissive",
+    desc: "Suggests the recipient is failing to see something obvious.",
+    alternatives: ["Naturally,", "It seems that,", "(Omit word)"]
+  },
+  {
+    phrase: "to clarify",
+    type: "stiff",
+    label: "Condescending Transition",
+    desc: "Can imply the recipient has difficulty understanding.",
+    alternatives: ["To make sure we're on the same page,", "Just to explain,"]
+  },
+  {
+    phrase: "as per",
+    type: "stiff",
+    label: "Bureaucratic Stiff",
+    desc: "Formal, dry, and overly legalistic.",
+    alternatives: ["According to", "Following", "Based on"]
+  },
+  {
+    phrase: "thanks for",
+    type: "warm",
+    label: "Gratitude / Warmth",
+    desc: "Friendly acknowledgment and appreciation.",
+    alternatives: []
+  },
+  {
+    phrase: "appreciate",
+    type: "warm",
+    label: "Warm Appreciation",
+    desc: "Shows respect and active gratitude.",
+    alternatives: []
+  },
+  {
+    phrase: "great to",
+    type: "warm",
+    label: "Welcoming Tone",
+    desc: "Positive, welcoming, and open tone.",
+    alternatives: []
+  },
+  {
+    phrase: "excited",
+    type: "warm",
+    label: "Enthusiasm",
+    desc: "Enthusiastic and engaged tone.",
+    alternatives: []
+  },
+  {
+    phrase: "looking forward",
+    type: "warm",
+    label: "Constructive & Warm",
+    desc: "Forward-looking and relationship-building.",
+    alternatives: []
+  },
+  {
+    phrase: "happy to help",
+    type: "warm",
+    label: "Helpful & Warm",
+    desc: "Friendly and approachable helper tone.",
+    alternatives: []
+  },
+  {
+    phrase: "thank you",
+    type: "warm",
+    label: "Gratitude / Polite",
+    desc: "Classic polite appreciation.",
+    alternatives: []
+  },
+  {
+    phrase: "congratulations",
+    type: "warm",
+    label: "Supportive / Warm",
+    desc: "Celebratory and highly positive.",
+    alternatives: []
+  }
+];
+
+const renderHighlightedText = (text, onReplace, styles) => {
+  if (!text) return null;
+  const regexParts = TONE_RULES.map(r => r.phrase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+  const toneRegex = new RegExp(`\\b(${regexParts.join('|')})\\b`, 'gi');
+
+  const matches = [...text.matchAll(toneRegex)];
+  if (matches.length === 0) return text;
+
+  const result = [];
+  let lastIndex = 0;
+
+  matches.forEach((match, idx) => {
+    const matchedText = match[0];
+    const matchIndex = match.index;
+    
+    if (matchIndex > lastIndex) {
+      result.push(text.substring(lastIndex, matchIndex));
+    }
+
+    const rule = TONE_RULES.find(r => r.phrase.toLowerCase() === matchedText.toLowerCase());
+
+    if (rule) {
+      result.push(
+        <span key={idx} className={`${styles.heatmapSpan} ${styles[rule.type]}`}>
+          {matchedText}
+          <span className={styles.tooltip}>
+            <strong className={styles.tooltipLabel}>{rule.label}</strong>
+            <span className={styles.tooltipDesc}>{rule.desc}</span>
+            {rule.alternatives && rule.alternatives.length > 0 && (
+              <div className={styles.tooltipAlts}>
+                <span>Suggested Replacements:</span>
+                <div className={styles.altButtons}>
+                  {rule.alternatives.map((alt, aIdx) => (
+                    <button
+                      key={aIdx}
+                      type="button"
+                      className={styles.altBtn}
+                      onClick={() => onReplace(matchedText, alt)}
+                    >
+                      {alt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </span>
+        </span>
+      );
+    } else {
+      result.push(matchedText);
+    }
+
+    lastIndex = matchIndex + matchedText.length;
+  });
+
+  if (lastIndex < text.length) {
+    result.push(text.substring(lastIndex));
+  }
+
+  return result;
+};
 
 const getPersonaMetrics = (p) => {
   const defaults = {
@@ -215,6 +449,15 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('input');
   const [context, setContext] = useState('');
+
+  // Speech Recognition hook instances
+  const speechMain = useSpeechRecognition((text) => {
+    setMessage((prev) => (prev ? prev + ' ' + text : text));
+  });
+
+  const speechContext = useSpeechRecognition((text) => {
+    setContext((prev) => (prev ? prev + ' ' + text : text));
+  });
   const [chip, setChip] = useState('match');
   const [loading, setLoading] = useState(false);
   const [shortening, setShortening] = useState(false);
@@ -239,6 +482,34 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
   // Chat Co-Pilot editor state
   const [copilotInstructions, setCopilotInstructions] = useState('');
   const [modifying, setModifying] = useState(false);
+
+  const speechCopilot = useSpeechRecognition((text) => {
+    setCopilotInstructions((prev) => (prev ? prev + ' ' + text : text));
+  });
+
+  // Tone Heatmap view mode state
+  const [viewMode, setViewMode] = useState('text');
+
+  const handleReplacePhrase = (originalText, replacementText) => {
+    let finalReplacement = replacementText;
+    if (replacementText === "(Omit word)" || replacementText === "(Omit greeting)") {
+      finalReplacement = "";
+    }
+    const escaped = originalText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`\\b${escaped}\\b`, 'g');
+    const newText = drafts[active].replace(regex, finalReplacement).replace(/\s+/g, ' ').trim();
+    
+    setDrafts(prev => ({ ...prev, [active]: newText }));
+    setOriginalDrafts(prev => ({ ...prev, [active]: newText }));
+    
+    if (activeDocId) {
+      updateDraft?.(activeDocId, {
+        drafts: { ...drafts, [active]: newText },
+        originalDrafts: { ...drafts, [active]: newText },
+        reply: newText,
+      });
+    }
+  };
 
   const handleModifyDraft = async () => {
     const current = drafts[active];
@@ -340,6 +611,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
       setMessage(preloadMsg.receivedMsg || '');
       setActiveDocId(preloadMsg.id || null);
       setMode(preloadMsg.mode || 'reply');
+      setViewMode('text');
 
       if (preloadMsg.drafts) {
         setDrafts(preloadMsg.drafts);
@@ -423,6 +695,7 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
     setActive('a');
     setActiveDocId(null);
     setActiveTab('output'); // Auto-switch to response tab on mobile
+    setViewMode('text');
     try {
       const vaultContext = vault && vault.length > 0
         ? vault.map(v => `[${v.title}]: ${v.content}`).join('\n\n')
@@ -705,9 +978,22 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
           {/* Main Input Prompt */}
           <div className={styles.mainInputSection}>
-            <label className={styles.innerLabel}>
-              {mode === 'compose' ? 'Describe the message you want to write' : 'Message received'}
-            </label>
+            <div className={styles.inputHeaderRow}>
+              <label className={styles.innerLabel}>
+                {mode === 'compose' ? 'Describe the message you want to write' : 'Message received'}
+              </label>
+              {speechMain.isSupported && (
+                <button
+                  type="button"
+                  className={`${styles.micBtn} ${speechMain.isListening ? styles.micActive : ''}`}
+                  onClick={speechMain.isListening ? speechMain.stopListening : speechMain.startListening}
+                  title={speechMain.isListening ? "Stop listening" : "Dictate message"}
+                >
+                  <i className={`ti ${speechMain.isListening ? 'ti-microphone-off' : 'ti-microphone'}`}></i>
+                  {speechMain.isListening && <span className={styles.listeningPulse}></span>}
+                </button>
+              )}
+            </div>
             <textarea
               ref={textareaRef}
               className={styles.mainTextarea}
@@ -749,9 +1035,22 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
 
           {/* Extra Context / Custom Guidance */}
           <div className={styles.contextSection}>
-            <label className={styles.innerLabel}>
-              {mode === 'compose' ? 'Custom instructions (Optional)' : 'How do you want to reply? (Optional)'}
-            </label>
+            <div className={styles.inputHeaderRow}>
+              <label className={styles.innerLabel}>
+                {mode === 'compose' ? 'Custom instructions (Optional)' : 'How do you want to reply? (Optional)'}
+              </label>
+              {speechContext.isSupported && (
+                <button
+                  type="button"
+                  className={`${styles.micBtn} ${speechContext.isListening ? styles.micActive : ''}`}
+                  onClick={speechContext.isListening ? speechContext.stopListening : speechContext.startListening}
+                  title={speechContext.isListening ? "Stop listening" : "Dictate instructions"}
+                >
+                  <i className={`ti ${speechContext.isListening ? 'ti-microphone-off' : 'ti-microphone'}`}></i>
+                  {speechContext.isListening && <span className={styles.listeningPulse}></span>}
+                </button>
+              )}
+            </div>
             <textarea
               className={styles.contextTextarea}
               placeholder={mode === 'compose'
@@ -998,6 +1297,25 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
             <div className={styles.draftVariant}>Variant {active.toUpperCase()}</div>
           </div>
 
+          {hasResult && (
+            <div className={styles.viewToggleRow}>
+              <button
+                type="button"
+                className={`${styles.viewToggleBtn} ${viewMode === 'text' ? styles.viewToggleActive : ''}`}
+                onClick={() => setViewMode('text')}
+              >
+                <i className="ti ti-edit"></i> Text Editor
+              </button>
+              <button
+                type="button"
+                className={`${styles.viewToggleBtn} ${viewMode === 'heatmap' ? styles.viewToggleActive : ''}`}
+                onClick={() => setViewMode('heatmap')}
+              >
+                <i className="ti ti-activity"></i> Tone Heatmap
+              </button>
+            </div>
+          )}
+
           {mode === 'compose' && platform === 'email' && subjects[active] && (
             <div className={styles.subjectWrapper}>
               <div className={styles.subjectHeader}>
@@ -1029,13 +1347,19 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
                 <span className={styles.thinking}>Crafting your reply<span className={styles.dots}>...</span></span>
               </div>
             ) : activeDraft ? (
-              <textarea
-                className={styles.draftTextarea}
-                value={activeDraft}
-                onChange={e => setDrafts(prev => ({ ...prev, [active]: e.target.value }))}
-                onBlur={handleDraftBlur}
-                placeholder="Your ghostwritten reply will appear here."
-              />
+              viewMode === 'heatmap' ? (
+                <div className={styles.heatmapContainer}>
+                  {renderHighlightedText(activeDraft, handleReplacePhrase, styles)}
+                </div>
+              ) : (
+                <textarea
+                  className={styles.draftTextarea}
+                  value={activeDraft}
+                  onChange={e => setDrafts(prev => ({ ...prev, [active]: e.target.value }))}
+                  onBlur={handleDraftBlur}
+                  placeholder="Your ghostwritten reply will appear here."
+                />
+              )
             ) : (
               <div className={styles.draftTextPlaceholder}>
                 Your ghostwritten reply will appear here.
@@ -1056,6 +1380,16 @@ export default function DraftPanel({ platform, tone, voiceProfile, saveProfile, 
                   onChange={e => setCopilotInstructions(e.target.value)}
                   onKeyDown={handleCopilotKeyDown}
                 />
+                {speechCopilot.isSupported && (
+                  <button
+                    type="button"
+                    className={`${styles.micBtnInline} ${speechCopilot.isListening ? styles.micActiveInline : ''}`}
+                    onClick={speechCopilot.isListening ? speechCopilot.stopListening : speechCopilot.startListening}
+                    title={speechCopilot.isListening ? "Stop listening" : "Dictate modification"}
+                  >
+                    <i className={`ti ${speechCopilot.isListening ? 'ti-microphone-off' : 'ti-microphone'}`}></i>
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.copilotBtn}
