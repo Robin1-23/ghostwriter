@@ -44,6 +44,14 @@
   flex-direction: column;
 }
 
+.overridesSection {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 16px;
+  margin-top: 16px;
+}
+
+
 .sectionToggle {
   display: flex;
   align-items: center;
